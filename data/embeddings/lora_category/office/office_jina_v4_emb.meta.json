@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/category/office_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000000",
+    "000011",
+    "000015",
+    "000016",
+    "000024",
+    "000026",
+    "000027",
+    "000028",
+    "000029",
+    "000035",
+    "000050",
+    "000071",
+    "000075",
+    "000078",
+    "000090",
+    "000092",
+    "000102",
+    "000119",
+    "000124",
+    "000139"
+  ],
+  "texts_preview": [
+    "Open the Zoho Meet app , view the scheduled meetings .",
+    "Open TickTick app and share the wedding plan task on dwbscratchid3@google.com through Gmail",
+    "create a new html file with the i.html using the '+' button in the webcode app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 120,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_category/office/office_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_category/office/office_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 120,
+    "total_images_existing_or_url": 120
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/ebay_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000014",
+    "000086",
+    "000225",
+    "000253",
+    "000267",
+    "000384",
+    "000388",
+    "000484",
+    "000561",
+    "000562",
+    "000834",
+    "000963",
+    "001017",
+    "001113",
+    "001119",
+    "001174",
+    "001270",
+    "001277",
+    "001298",
+    "001299"
+  ],
+  "texts_preview": [
+    "Look for the tv wall mount with tv stands & mounts category on the eBay app before making a decision. I want to add specifications.",
+    "Find the smart home speakers on the eBay app.",
+    "Open eBay app and search for Levis mens denim jeans"
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 124,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/ebay/ebay_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/ebay/ebay_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 124,
+    "total_images_existing_or_url": 124
+  }
+}

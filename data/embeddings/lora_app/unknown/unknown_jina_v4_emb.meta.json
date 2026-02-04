@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/unknown_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000000",
+    "000002",
+    "000003",
+    "000004",
+    "000007",
+    "000009",
+    "000011",
+    "000012",
+    "000013",
+    "000015",
+    "000016",
+    "000017",
+    "000019",
+    "000020",
+    "000021",
+    "000022",
+    "000023",
+    "000025",
+    "000026",
+    "000027"
+  ],
+  "texts_preview": [
+    "Open the Zoho Meet app , view the scheduled meetings .",
+    "I am tired of the hustle and bustle of the world. I want to just have a peaceful mind. Play the classic song \"Casta diva by Maria Callas\" in the Dailymotion app",
+    "view the details of The Witcher Audiobook including price , description shipping and more ."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 142,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/unknown/unknown_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/unknown/unknown_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 142,
+    "total_images_existing_or_url": 142
+  }
+}

@@ -1,0 +1,1 @@
+Lora embedding for LoraRetriever.

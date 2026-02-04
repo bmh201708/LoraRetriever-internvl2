@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/flipkart_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000285",
+    "000320",
+    "000427",
+    "000534",
+    "000603",
+    "000639",
+    "000743",
+    "000779",
+    "000826",
+    "000852",
+    "000923",
+    "001005",
+    "001019",
+    "001452",
+    "001522",
+    "001528",
+    "001571",
+    "001616",
+    "001641",
+    "001828"
+  ],
+  "texts_preview": [
+    "View the reviews of Campus Women's ANNIE walking shoes for me on the Flipkart app.",
+    "I am looking for shirts for my husband, so search for \"Raymond black shirts for men\" on the Flipkart app.",
+    "I am all set to get the casual shoes, but I may not get the shoes in the size that I fit. Look for casual shoes with a shoe size of 8 in the Flipkart app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 108,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/flipkart/flipkart_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/flipkart/flipkart_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 108,
+    "total_images_existing_or_url": 108
+  }
+}

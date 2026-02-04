@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/category/traveling_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000013",
+    "000023",
+    "000036",
+    "000064",
+    "000074",
+    "000094",
+    "000105",
+    "000115",
+    "000153",
+    "000165",
+    "000256",
+    "000276",
+    "000286",
+    "000292",
+    "000303",
+    "000308",
+    "000313",
+    "000325",
+    "000341",
+    "000349"
+  ],
+  "texts_preview": [
+    "On cruisedeals, I would like to view the cruise schedules for a four-night trip from New York to Canada.",
+    "Get travel information for Air India 7544, operated by Ethiopian Air, from Sao Paulo-Guarulhos International Airport to Indira Gandhi International Airport in New Delhi by using the Kayak app.",
+    "My brother and I will be visiting Rio de Janeiro the following month. For two persons travelling to Rio de Janeiro from November 10 to November 15, I'll look for lodging on hotels.com."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 206,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_category/traveling/traveling_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_category/traveling/traveling_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 206,
+    "total_images_existing_or_url": 206
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/category/shopping_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000004",
+    "000005",
+    "000014",
+    "000019",
+    "000030",
+    "000048",
+    "000055",
+    "000059",
+    "000068",
+    "000072",
+    "000082",
+    "000084",
+    "000086",
+    "000106",
+    "000109",
+    "000114",
+    "000117",
+    "000121",
+    "000128",
+    "000137"
+  ],
+  "texts_preview": [
+    "Read Reviews from other shoppers to see what they think about Prince EXO3 Rebel Lite 98 Tennis Racquet in the Khelmart app.",
+    "In the Amazon app, look for a washing machine with LG in the brand filter.",
+    "Look for the tv wall mount with tv stands & mounts category on the eBay app before making a decision. I want to add specifications."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 137,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_category/shopping/shopping_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_category/shopping/shopping_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 137,
+    "total_images_existing_or_url": 137
+  }
+}

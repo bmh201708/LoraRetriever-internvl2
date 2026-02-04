@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/category/lives_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000007",
+    "000017",
+    "000032",
+    "000037",
+    "000042",
+    "000046",
+    "000056",
+    "000058",
+    "000067",
+    "000123",
+    "000125",
+    "000132",
+    "000172",
+    "000191",
+    "000194",
+    "000220",
+    "000230",
+    "000233",
+    "000236",
+    "000239"
+  ],
+  "texts_preview": [
+    "Open the Plantum app and Browse How to grow an allergy-free garden",
+    "I am looking for a rental place in St. John, USA, under $4,000, so search for rental properties for me in St. John on the Redfin app.",
+    "While I'm tracking my activities, it is not getting it correctly so I need help in the google fit app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 139,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_category/lives/lives_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_category/lives/lives_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 139,
+    "total_images_existing_or_url": 139
+  }
+}

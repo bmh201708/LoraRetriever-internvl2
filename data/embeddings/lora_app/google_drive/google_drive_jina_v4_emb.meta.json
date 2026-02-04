@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/google_drive_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000028",
+    "000029",
+    "000453",
+    "000717",
+    "001117",
+    "001151",
+    "001614",
+    "001793",
+    "001901",
+    "002455",
+    "002625",
+    "002731",
+    "002870",
+    "003093",
+    "003657",
+    "003999",
+    "004312",
+    "005090",
+    "006070",
+    "006860"
+  ],
+  "texts_preview": [
+    "In the Google Drive app, create a new folder called Dreams and Aspirations.",
+    "I want to go to Manage Google Drive storage in the Google Drive app so I can see how much storage is being utilised and when my storage will run out.",
+    "I want to restore the screenshot.txt file from the trash in the Google Drive app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 102,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/google_drive/google_drive_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/google_drive/google_drive_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 102,
+    "total_images_existing_or_url": 102
+  }
+}

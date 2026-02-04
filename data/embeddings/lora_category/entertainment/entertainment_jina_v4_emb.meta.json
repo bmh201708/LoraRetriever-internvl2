@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/category/entertainment_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000002",
+    "000053",
+    "000054",
+    "000088",
+    "000091",
+    "000098",
+    "000104",
+    "000108",
+    "000122",
+    "000134",
+    "000136",
+    "000140",
+    "000154",
+    "000158",
+    "000167",
+    "000190",
+    "000204",
+    "000219",
+    "000240",
+    "000245"
+  ],
+  "texts_preview": [
+    "I am tired of the hustle and bustle of the world. I want to just have a peaceful mind. Play the classic song \"Casta diva by Maria Callas\" in the Dailymotion app",
+    "Show me some of the sustainability art pieces on the Pinterest app for my research on sustainable energy.",
+    "Open the radio app and browse through the KRRO FM 103.7 radio stations that are available."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 140,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_category/entertainment/entertainment_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_category/entertainment/entertainment_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 140,
+    "total_images_existing_or_url": 140
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/reminder_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000078",
+    "000156",
+    "000162",
+    "000474",
+    "000544",
+    "000556",
+    "000565",
+    "000691",
+    "000711",
+    "000871",
+    "000974",
+    "000990",
+    "001003",
+    "001010",
+    "001369",
+    "001371",
+    "001491",
+    "001534",
+    "001843",
+    "001868"
+  ],
+  "texts_preview": [
+    "I want to create a reminder to buy New balance hiking shoes on the To do reminder app",
+    "I want to edit the reminder to buy new Balance hiking shoes with a reminder date of December 21st on the To-Do reminder app.",
+    "In the reminders app, repeat Ashu´s birthday reminder every year."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 139,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/reminder/reminder_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/reminder/reminder_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 139,
+    "total_images_existing_or_url": 139
+  }
+}

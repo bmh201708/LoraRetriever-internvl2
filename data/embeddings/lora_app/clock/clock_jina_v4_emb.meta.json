@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/clock_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000119",
+    "000214",
+    "000488",
+    "000543",
+    "000583",
+    "000608",
+    "000698",
+    "000719",
+    "000768",
+    "000776",
+    "001022",
+    "001165",
+    "001196",
+    "001254",
+    "001291",
+    "001423",
+    "001788",
+    "001920",
+    "001936",
+    "001988"
+  ],
+  "texts_preview": [
+    "I am going to start cycling  and want to record the time for completing 1 Mile and do the improvement accordingly , Start the stopwatch in the clock app .",
+    "Set a timer for 30 minutes in the clock app",
+    "the timer, which was created by me I want to pause it."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 103,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/clock/clock_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/clock/clock_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 103,
+    "total_images_existing_or_url": 103
+  }
+}

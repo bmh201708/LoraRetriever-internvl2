@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/gmail_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000024",
+    "000334",
+    "000442",
+    "000443",
+    "000498",
+    "000559",
+    "000668",
+    "000692",
+    "000765",
+    "000800",
+    "000849",
+    "000933",
+    "000972",
+    "001062",
+    "001067",
+    "001123",
+    "001142",
+    "001143",
+    "001234",
+    "001243"
+  ],
+  "texts_preview": [
+    "Write Carlos an email at Carlos3345@gmail.com with the title \"Thank you for the Gift\" saying that the brother appreciated all the items you sent, especially the sports equipment for inspiration.",
+    "Select the hello note & share it with gmail in the note app",
+    "Search for Kayak mail in gmail app"
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 137,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/gmail/gmail_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/gmail/gmail_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 137,
+    "total_images_existing_or_url": 137
+  }
+}

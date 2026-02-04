@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/category/unknown_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000003",
+    "000009",
+    "000012",
+    "000020",
+    "000021",
+    "000022",
+    "000025",
+    "000034",
+    "000040",
+    "000041",
+    "000044",
+    "000045",
+    "000047",
+    "000049",
+    "000052",
+    "000057",
+    "000060",
+    "000062",
+    "000065",
+    "000066"
+  ],
+  "texts_preview": [
+    "view the details of The Witcher Audiobook including price , description shipping and more .",
+    "I'd like to forward Google Community team emails to Cerebra Research at dbwscratch.test.id4@gmail.com.",
+    "I would like to share the book to my friend Abdul Karim at abdulkarim91@gmail.com."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 133,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_category/unknown/unknown_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_category/unknown/unknown_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 133,
+    "total_images_existing_or_url": 133
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "data/example/app/amazon_train_example.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000005",
+    "000048",
+    "000128",
+    "000169",
+    "000337",
+    "000423",
+    "000540",
+    "000566",
+    "000576",
+    "000590",
+    "000604",
+    "000624",
+    "000633",
+    "000681",
+    "000708",
+    "000786",
+    "000821",
+    "000843",
+    "000897",
+    "000917"
+  ],
+  "texts_preview": [
+    "In the Amazon app, look for a washing machine with LG in the brand filter.",
+    "I want to buy a pair of 42-size formal shoes, so search for 42-size formal shoes for me in the Amazon app.",
+    "My son told me to read the reviews of the product before purchasing it, so read the reviews of the Kawachi Fold Sown 3 Seater Wall Mounted Folding Breakfast Dining Table in the Amazon app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 108,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "data/embeddings/lora_app/amazon/amazon_jina_v4_emb.npy",
+    "mean": "data/embeddings/lora_app/amazon/amazon_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 108,
+    "total_images_existing_or_url": 108
+  }
+}
