@@ -18,7 +18,7 @@ import sys
 
 # Set environment variables before importing Swift
 if 'MAX_PIXELS' not in os.environ:
-    os.environ['MAX_PIXELS'] = '150000'
+    os.environ['MAX_PIXELS'] = '100000'
 if 'MAX_NUM' not in os.environ:
     os.environ['MAX_NUM'] = '12'
 os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'expandable_segments:True')
@@ -115,7 +115,14 @@ def parse_args():
     parser.add_argument('--show_similarities', action='store_true',
                        help='Print similarity scores for all LoRAs')
     
-    return parser.parse_args()
+    parser.add_argument('--gpu_id', type=str, default=None, help='GPU ID to use (e.g., "0")')
+    
+    args = parser.parse_args()
+    
+    if args.gpu_id is not None:
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+        
+    return args
 
 
 def load_jsonl(path: str) -> List[Dict[str, Any]]:
