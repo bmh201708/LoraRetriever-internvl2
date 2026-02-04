@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/decathlon_train_first20.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000068",
+    "000241",
+    "000260",
+    "000340",
+    "000496",
+    "000684",
+    "000840",
+    "000952",
+    "001237",
+    "002273",
+    "002290",
+    "002598",
+    "002871",
+    "002900",
+    "002959",
+    "003025",
+    "003677",
+    "003900",
+    "004004",
+    "004109"
+  ],
+  "texts_preview": [
+    "Open Decathlon AAP and search for Addidas sports shoes.",
+    "I'm going trekking with a friend next weekend and want to look for the best hiking shoes on the Decathlon app.",
+    "I want to add the Rockrider City Cycle Btwin My bike to my cart, so add this bicycle to my cart in the Decathlon app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 124,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/decathlon/decathlon_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/decathlon/decathlon_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 124,
+    "total_images_existing_or_url": 124
+  }
+}

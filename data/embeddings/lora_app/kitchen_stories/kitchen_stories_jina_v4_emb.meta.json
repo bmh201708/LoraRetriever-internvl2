@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/kitchen_stories_train_first20.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000060",
+    "000145",
+    "000266",
+    "000611",
+    "000841",
+    "001157",
+    "001462",
+    "002056",
+    "002797",
+    "002939",
+    "002992",
+    "003217",
+    "003291",
+    "003404",
+    "003518",
+    "003579",
+    "003668",
+    "003746",
+    "003823",
+    "003848"
+  ],
+  "texts_preview": [
+    "I want to view the recipe for Welsh Cakes in the kitchen stories app.",
+    "My eyes are getting affected. I want to change the display setting to light mode in the Kitchen Stories app.",
+    "Go to the Kitchen Stories app and search for a chicken curry recipe"
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 138,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/kitchen_stories/kitchen_stories_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/kitchen_stories/kitchen_stories_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 138,
+    "total_images_existing_or_url": 138
+  }
+}

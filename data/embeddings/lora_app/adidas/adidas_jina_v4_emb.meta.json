@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/adidas_train_first20.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000106",
+    "000137",
+    "000186",
+    "000198",
+    "000387",
+    "000441",
+    "000476",
+    "000655",
+    "000759",
+    "000872",
+    "000887",
+    "000976",
+    "001011",
+    "001387",
+    "001440",
+    "001497",
+    "001555",
+    "001640",
+    "001859",
+    "001865"
+  ],
+  "texts_preview": [
+    "Shop for  RDY shoes in the Adidas app.",
+    "On the Shopclues app, add the adidas men's navy sports shoes to the wishlist.",
+    "Search for the dark blue yoga pants in the adidas app."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 123,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/adidas/adidas_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/adidas/adidas_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 123,
+    "total_images_existing_or_url": 123
+  }
+}

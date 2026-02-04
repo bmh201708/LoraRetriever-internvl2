@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/etsy_train_first20.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000030",
+    "000178",
+    "000521",
+    "000528",
+    "000686",
+    "000943",
+    "001088",
+    "001336",
+    "001694",
+    "002050",
+    "002476",
+    "002708",
+    "002712",
+    "002813",
+    "003002",
+    "003206",
+    "003374",
+    "003631",
+    "003888",
+    "003974"
+  ],
+  "texts_preview": [
+    "Compare the prices of the Shoes similar to men's athletic shoes in the Etsy app",
+    "Read the review of the men's athletic shoes on the Etsy app as I need more information about this product.",
+    "I want to search for the Basketball on the Etsy app for my daughter so she may learn the Basketball in her spare time."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 121,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/etsy/etsy_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/etsy/etsy_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 121,
+    "total_images_existing_or_url": 121
+  }
+}

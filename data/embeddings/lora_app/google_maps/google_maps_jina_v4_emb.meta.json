@@ -1,0 +1,64 @@
+{
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/google_maps_train_first20.jsonl",
+  "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
+  "device": "cuda",
+  "dtype": "float16",
+  "text_source": "user",
+  "include_role_tags": false,
+  "text_task": "retrieval",
+  "text_prompt_name": "query",
+  "image_task": "retrieval",
+  "text_batch_size": 32,
+  "image_batch_size": 1,
+  "max_length": 512,
+  "max_pixels": 262144,
+  "truncate_dim": null,
+  "vector_type": null,
+  "return_multivector": false,
+  "normalized": true,
+  "episode_ids": [
+    "000115",
+    "000168",
+    "000325",
+    "000558",
+    "000702",
+    "000898",
+    "000922",
+    "001297",
+    "001488",
+    "001789",
+    "002284",
+    "003020",
+    "003294",
+    "003455",
+    "003598",
+    "003770",
+    "004180",
+    "004235",
+    "004464",
+    "004506"
+  ],
+  "texts_preview": [
+    "In the Google Maps app, find the \"Pete's Kitchen\" place for dinner.",
+    "Go to Google Maps and find directions to Jacob Riis Park  for this Saturday and save the address as Escape de ville",
+    "In the Google Maps app, I'd want to see the walking directions from my residence to Little Beet."
+  ],
+  "stats": {
+    "num_examples": 20,
+    "num_images_total": 144,
+    "dim": 2048,
+    "text_task": "retrieval",
+    "text_prompt_name": "query",
+    "image_task": "retrieval",
+    "normalize": true,
+    "return_multivector": false
+  },
+  "npy_paths": {
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/google_maps/google_maps_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/google_maps/google_maps_jina_v4_emb.mean.npy"
+  },
+  "dataset_stats": {
+    "total_images_listed_in_jsonl": 144,
+    "total_images_existing_or_url": 144
+  }
+}
