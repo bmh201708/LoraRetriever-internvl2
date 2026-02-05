@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 LoraRetriever-InternVL2 implements the LoraRetriever paper for dynamic, input-aware LoRA retrieval and composition with multimodal vision-language models. Instead of using a single fine-tuned LoRA, it maintains multiple specialized LoRA adapters and dynamically selects the best-matching adapters based on query similarity.
 
-**Core workflow**: Query + Images → Retriever (embedding similarity) → Top-K LoRAs with Weights → Composer (mixture/fusion) → Base Model + Composed LoRAs → Response
+**Core workflow**: Query + Images → Retriever (embedding similarity via jina-embeddings-v4) → Top-K LoRAs with Weights → Composer (mixture/fusion) → Base Model + Composed LoRAs → Response
 
 ## Key Commands
 
@@ -15,7 +15,7 @@ LoraRetriever-InternVL2 implements the LoraRetriever paper for dynamic, input-aw
 conda activate Lretriever
 pip install -e .
 
-# Run inference with LoRA retrieval
+# Run inference with LoRA retrieval (mixture mode)
 python infer_lora_retriever.py --test_data data/Val_100.jsonl --top_k 3 --merge_method mixture
 
 # Run inference with fusion composition
@@ -26,25 +26,21 @@ python infer_lora_retriever.py --test_data data/Val_100.jsonl --debug --show_sim
 
 # Run unit tests
 python tests/test_retriever.py
-
-# Run comprehensive LoRA tests
 python tests/test_all_loras.py
-
-# Run E2E inference tests
 python tests/test_e2e_inference.py --num_samples 5
 
-# Evaluate inference results (step-level and episode-level accuracy)
-python evaluation/evaluate.py --data_path output/lora_retriever_results/xxx.jsonl --verbose
+# Run evaluation via shell script
+./scripts/run_eval.sh --test_data data/Val_100.jsonl --top_k 3 --merge_method mixture
+```
 
-# Run full evaluation pipeline (inference + evaluation)
-python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --top_k 3 --merge_method mixture
+## Environment Variables
 
-# Run IID (in-distribution) or OOD (out-of-distribution) evaluation
-python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --eval_type iid
-python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --eval_type ood
-
-# Quick evaluation using shell script
-./scripts/run_eval.sh --test_data data/Val_100.jsonl --top_k 3
+Set before running inference:
+```bash
+export MAX_PIXELS=150000          # Image processing resolution
+export MAX_NUM=12                 # Maximum image count per sample
+export CUDA_VISIBLE_DEVICES=0     # GPU selection
+export PYTORCH_CUDA_ALLOC_CONF='expandable_segments:True'
 ```
 
 ## Architecture
@@ -56,40 +52,53 @@ python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --eval_type o
 - `composition.py`: MixtureComposer (output-level weighted average) and FusionComposer (parameter-level merging)
 
 **swift/** - Modified Alibaba Swift framework with mixture mode support
-- `llm/utils/`: Model loading, templates, inference utilities
-- `tuners/lora_layers.py`: Modified LoRA layers with mixture mode context
+- `llm/utils/`: Model loading (`get_model_tokenizer`), templates (`get_template`), inference utilities
+- `tuners/lora_layers.py`: Modified LoRA layers with `LOGOMixtureContext` for per-sample adapter weighting
 - `tuners/`: LoRA implementation and adapter management
 
 **config/** - LoRA configuration files (JSON)
 - `app_loras_config_internvl2.json`: 14 app-specific LoRAs (Adidas, Amazon, Gmail, etc.)
-- `category_loras_config_internvl2.json`: 5 category LoRAs (Shopping, Media, etc.)
+- `category_loras_config_internvl2.json`: 5 category LoRAs (Shopping, Entertainment, etc.)
 
 **data/** - Test data and pre-computed embeddings
-- `embeddings/`: Pre-computed LoRA embeddings (.npy files)
-- `Val_100.jsonl`: Test dataset
+- `embeddings/lora_app/`: Pre-computed app LoRA embeddings (.npy files)
+- `embeddings/lora_category/`: Pre-computed category LoRA embeddings
+- `Val_100.jsonl`: 100-sample validation dataset
 
 ### Key Import Paths
 
 ```python
-from lora_retriever import LoraRetriever, LoraRetrieverConfig, MixtureComposer, FusionComposer
+from lora_retriever import LoraRetriever, LoraRetrieverConfig, MixtureComposer, FusionComposer, CompositionStrategy
 from swift.tuners import Swift
 from swift.llm.utils import get_model_tokenizer, get_template, inference
-from swift.utils import get_logger
+from swift.utils import get_logger, append_to_jsonl, seed_everything
 ```
 
 ### Composition Strategies
 
-- **Mixture**: All adapters loaded in memory, different weights applied per sample at output level (x' = Σ_j B_j * A_j * x). More flexible but higher memory.
-- **Fusion**: Parameters merged into single adapter before inference. Lower memory, faster inference.
+- **Mixture**: All adapters loaded in memory, different weights applied per sample at output level (`x' = Σ_j B_j * A_j * x`). More flexible, higher memory usage.
+- **Fusion**: Parameters merged into single adapter before inference. Lower memory, faster inference, less flexible.
+
+## Data Format
+
+Input JSONL files use this format:
+```json
+{
+  "images": ["path/to/img1.png", "path/to/img2.png"],
+  "query": "<image>\n<image>\nText description of task",
+  "response": "Expected action sequence",
+  "episode_id": "000058"
+}
+```
 
 ## Configuration Format
 
-LoRA configs in JSON:
+LoRA configs in JSON (`config/*.json`):
 ```json
 {
   "lora_name": "app_lora_adidas",
   "lora_path": "/path/to/lora/checkpoint",
-  "embedding_path": "data/embeddings/.../adidas_jina_v4_emb.mean.npy",
+  "embedding_path": "data/embeddings/lora_app/adidas/adidas_jina_v4_emb.mean.npy",
   "description": "InternVL2-2B LoRA for Adidas app"
 }
 ```
@@ -97,13 +106,13 @@ LoRA configs in JSON:
 ## Hardcoded Paths (in infer_lora_retriever.py)
 
 The following paths are hardcoded and may need adjustment:
-- `JINA_MODEL_PATH`: jina-embeddings-v4 model location
+- `JINA_MODEL_PATH`: jina-embeddings-v4 model location (`/home/hmpiao/hmpiao/jina-embeddings-v4`)
 - `MODEL_PATHS`: Base model paths (InternVL2-2B, Qwen2-VL-7B-Instruct)
 - LoRA checkpoint paths in config files
 
 ## Swift Framework Modifications
 
 Key modifications to the Swift framework for mixture mode support:
-1. `swift/tuners/lora_layers.py`: Added `lora_mixture_context` for per-sample adapter weighting
+1. `swift/tuners/lora_layers.py`: Added `LOGOMixtureContext` for per-sample adapter weighting
 2. Multi-adapter loading via `Swift.from_pretrained()` with `adapter_name` parameter
 3. `lora_mapping` tensor control in inference for batch-level LoRA selection

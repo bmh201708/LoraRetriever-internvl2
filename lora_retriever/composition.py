@@ -164,18 +164,21 @@ class MixtureComposer(BaseComposer):
 class FusionComposer(BaseComposer):
     """
     Fusion of LoRAs: Parameter-level averaging
-    
+
     From paper Section 4.2.2:
     Θ_fusion = (1/k) * Σ_{j=1}^{k} Θ_j
-    
+
     This fuses the parameters of LoRAs, allowing the fused parameter
     to function like a single LoRA.
-    
-    Implementation with Swift:
-    - Uses add_weighted_adapter to create merged adapter
-    - Merged adapter can be used like a regular single LoRA
+
+    优化策略：
+    - 第一次调用时，使用 add_weighted_adapter 创建 fused adapter
+    - 后续调用时，直接更新 fused adapter 的参数，避免重复调用 set_active_adapters
+    - 详见 docs/fusion_performance_issue.md
     """
-    
+
+    FUSED_ADAPTER_NAME = "fused_lora"
+
     def __init__(
         self,
         combination_type: Literal['linear', 'svd', 'cat'] = 'linear',
@@ -185,14 +188,12 @@ class FusionComposer(BaseComposer):
         Args:
             combination_type: How to combine LoRA parameters
                 - 'linear': Weighted average (default, matches paper)
-                - 'svd': SVD-based merging
-                - 'cat': Concatenation (increases rank)
-            merged_adapter_prefix: Prefix for merged adapter names
+            merged_adapter_prefix: Unused, kept for API compatibility
         """
         self.combination_type = combination_type
-        self.merged_adapter_prefix = merged_adapter_prefix
-        self._merge_count = 0
-    
+        self._initialized = False
+        self._model_ref = None
+
     def compose(
         self,
         model: nn.Module,
@@ -201,70 +202,137 @@ class FusionComposer(BaseComposer):
         **kwargs
     ) -> str:
         """
-        Create a fused adapter by merging parameters
-        
+        Create or update a fused adapter by merging parameters
+
         Args:
             model: Model with loaded LoRA adapters
             adapter_names: Adapters to merge
             weights: Weights for each adapter
-            
+
         Returns:
-            Name of the created merged adapter
+            Name of the fused adapter
         """
         if not adapter_names:
             raise ValueError("No adapters to merge")
-        
+
         # Normalize weights
         weight_sum = sum(weights)
         if weight_sum > 0:
             weights = [w / weight_sum for w in weights]
-        
-        # Create unique merged adapter name
-        self._merge_count += 1
-        merged_name = f'{self.merged_adapter_prefix}_{self._merge_count}'
-        
-        # Use add_weighted_adapter
+
+        merged_name = self.FUSED_ADAPTER_NAME
+
         try:
-            model.add_weighted_adapter(
-                adapters=adapter_names,
-                weights=weights,
-                adapter_name=merged_name,
-                combination_type=self.combination_type
-            )
-            
-            # Set as active adapter
-            if hasattr(model, 'set_adapter'):
-                model.set_adapter(merged_name)
-            elif hasattr(model, 'base_model') and hasattr(model.base_model, 'set_adapter'):
-                model.base_model.set_adapter(merged_name)
-            
+            if not self._initialized:
+                # 第一次：使用 add_weighted_adapter 创建 fused adapter
+                model.add_weighted_adapter(
+                    adapters=adapter_names,
+                    weights=weights,
+                    adapter_name=merged_name,
+                    combination_type=self.combination_type
+                )
+                self._initialized = True
+                self._model_ref = model
+            else:
+                # 后续：直接更新 fused adapter 的参数
+                self._update_fused_params(model, adapter_names, weights, merged_name)
+                # 确保 fused adapter 是激活状态（不需要停用其他adapter）
+                self._ensure_fused_active(model, merged_name)
+
             return merged_name
-            
+
         except Exception as e:
             print(f"[ERROR] Failed to merge adapters: {e}")
+            import traceback
+            traceback.print_exc()
             # Fallback to first adapter
             if adapter_names:
                 top_adapter = adapter_names[0]
-                if hasattr(model, 'set_adapter'):
-                    model.set_adapter(top_adapter)
+                if hasattr(model, 'set_active_adapters'):
+                    model.set_active_adapters(top_adapter)
                 return top_adapter
             raise
-    
+
+    def _update_fused_params(
+        self,
+        model: nn.Module,
+        adapter_names: List[str],
+        weights: List[float],
+        fused_name: str
+    ) -> None:
+        """
+        直接更新 fused adapter 的参数，避免调用 add_weighted_adapter
+
+        Args:
+            model: Model with loaded LoRA adapters
+            adapter_names: Source adapters to merge
+            weights: Weights for each adapter
+            fused_name: Name of the fused adapter to update
+        """
+        from peft.tuners.lora import LoraLayer
+
+        for module in model.modules():
+            if not isinstance(module, LoraLayer):
+                continue
+
+            # 检查 fused adapter 是否存在于此层
+            if not hasattr(module, 'lora_A') or fused_name not in module.lora_A:
+                continue
+
+            # 检查所有源 adapter 是否存在于此层
+            valid_adapters = [name for name in adapter_names if name in module.lora_A]
+            if not valid_adapters:
+                continue
+
+            # 重新计算权重（只针对此层存在的adapter）
+            valid_weights = [weights[adapter_names.index(name)] for name in valid_adapters]
+            weight_sum = sum(valid_weights)
+            if weight_sum > 0:
+                valid_weights = [w / weight_sum for w in valid_weights]
+
+            # 计算融合后的 lora_A 参数: Σ(w_i * A_i)
+            fused_A = None
+            for name, w in zip(valid_adapters, valid_weights):
+                if fused_A is None:
+                    fused_A = module.lora_A[name].weight.data.clone() * w
+                else:
+                    fused_A += module.lora_A[name].weight.data * w
+
+            # 计算融合后的 lora_B 参数: Σ(w_i * B_i)
+            fused_B = None
+            for name, w in zip(valid_adapters, valid_weights):
+                if fused_B is None:
+                    fused_B = module.lora_B[name].weight.data.clone() * w
+                else:
+                    fused_B += module.lora_B[name].weight.data * w
+
+            # 更新 fused adapter 的参数
+            if fused_A is not None:
+                module.lora_A[fused_name].weight.data.copy_(fused_A)
+            if fused_B is not None:
+                module.lora_B[fused_name].weight.data.copy_(fused_B)
+
+    def _ensure_fused_active(self, model: nn.Module, fused_name: str) -> None:
+        """
+        确保 fused adapter 处于激活状态，但不停用其他adapter
+
+        Args:
+            model: Model
+            fused_name: Name of fused adapter
+        """
+        from peft.tuners.lora import LoraLayer
+
+        for module in model.modules():
+            if isinstance(module, LoraLayer) and hasattr(module, 'set_activation'):
+                if fused_name in getattr(module, 'lora_A', {}):
+                    module.set_activation(fused_name, True)
+
     def cleanup(self, model: nn.Module) -> None:
         """
-        Delete all fused adapters to free memory
-        
-        Args:
-            model: Model with fused adapters
+        Reset state (fused adapter remains in model but can be reused)
         """
-        if hasattr(model, 'delete_adapter'):
-            for i in range(1, self._merge_count + 1):
-                adapter_name = f'{self.merged_adapter_prefix}_{i}'
-                try:
-                    model.delete_adapter(adapter_name)
-                except:
-                    pass
-        self._merge_count = 0
+        self._initialized = False
+        self._model_ref = None
 
 
 class BatchInferenceHelper:

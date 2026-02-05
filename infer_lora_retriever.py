@@ -15,6 +15,18 @@ Usage:
 
 import os
 import sys
+import argparse
+
+# 在 import torch 之前解析 gpu_id 参数
+def _parse_gpu_id():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--gpu_id', type=str, default='5')
+    args, _ = parser.parse_known_args()
+    return args.gpu_id
+
+_gpu_id = _parse_gpu_id()
+if _gpu_id is not None:
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(_gpu_id)
 
 # Set environment variables before importing Swift
 if 'MAX_PIXELS' not in os.environ:
@@ -24,7 +36,6 @@ if 'MAX_NUM' not in os.environ:
 os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'expandable_segments:True')
 
 import json
-import argparse
 import datetime as dt
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
@@ -115,13 +126,10 @@ def parse_args():
     parser.add_argument('--show_similarities', action='store_true',
                        help='Print similarity scores for all LoRAs')
     
-    parser.add_argument('--gpu_id', type=str, default=None, help='GPU ID to use (e.g., "0")')
-    
+    parser.add_argument('--gpu_id', type=str, default='5', help='GPU ID to use (e.g., "0")')
+
     args = parser.parse_args()
-    
-    if args.gpu_id is not None:
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
-        
+    # gpu_id 已在文件开头设置，此处不再重复设置
     return args
 
 
@@ -501,6 +509,11 @@ def main():
 
     # 关闭进度条
     pbar.close()
+
+    # Fusion模式下清理所有merged adapters
+    if args.merge_method == 'fusion':
+        logger.info("Cleaning up fused adapters...")
+        composer.cleanup(model)
 
     # Summary
     successful = sum(1 for r in results if not r['response'].startswith('ERROR'))
