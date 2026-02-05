@@ -324,16 +324,22 @@ def main():
     logger.info("Starting LoraRetriever inference...")
     results = []
     project_root = str(PROJECT_ROOT)
-    
-    for idx, sample in enumerate(tqdm(test_data, desc="LoraRetriever Inference")):
+
+    # 创建进度条，显示详细信息
+    pbar = tqdm(test_data, desc="LoraRetriever Inference", ncols=120)
+
+    for idx, sample in enumerate(pbar):
         query = sample.get('query', '')
         images = sample.get('images', [])
         label = sample.get('response', '')
-        
+
         try:
+            # 更新进度条：显示当前阶段
+            pbar.set_description(f"[{idx+1}/{len(test_data)}] Retrieving LoRAs")
+
             # Resolve image paths
             resolved_images = resolve_image_paths(images, project_root)
-            
+
             # =========================================================================
             # Step 1: Retrieve Top-K LoRAs
             # =========================================================================
@@ -341,11 +347,16 @@ def main():
                 'text': query,
                 'images': resolved_images[:2]  # Use max 2 images for embedding
             }
-            
+
             selected_loras, weights = retriever.retrieve_with_weights(
                 query_input,
                 top_k=args.top_k
             )
+
+            # 更新进度条：显示选中的 LoRAs 和图片信息
+            lora_display = ', '.join([f"{name.split('_')[-1]}" for name in selected_loras[:2]])
+            img_info = f"{len(resolved_images)}imgs" if len(resolved_images) <= 10 else f"{len(resolved_images)}imgs(多!)"
+            pbar.set_postfix_str(f"{img_info} | LoRAs: {lora_display}")
             
             if args.show_similarities:
                 all_sims = retriever.get_all_similarities(query_input)
@@ -357,8 +368,19 @@ def main():
             # =========================================================================
             # Step 2: Compose LoRAs
             # =========================================================================
-            adjusted_query = prepare_query(query, len(resolved_images))
-            
+            # 更新进度条：显示推理阶段
+            pbar.set_description(f"[{idx+1}/{len(test_data)}] Inferencing")
+
+            # 限制推理时的图片数量，避免 OOM
+            max_inference_images = int(os.environ.get('MAX_NUM', '12'))
+            if len(resolved_images) > max_inference_images:
+                logger.warning(f"Sample {idx}: {len(resolved_images)} 张图片超过限制，只使用前 {max_inference_images} 张")
+                inference_images = resolved_images[:max_inference_images]
+            else:
+                inference_images = resolved_images
+
+            adjusted_query = prepare_query(query, len(inference_images))
+
             if args.merge_method == 'mixture':
                 # Create lora_mapping for mixture mode
                 lora_mapping = composer.compose(
@@ -374,14 +396,14 @@ def main():
                 template.model = model
                 
                 # Run inference with mixture mode
-                if resolved_images:
+                if inference_images:
                     response, _ = inference(
                         model,
                         template,
                         adjusted_query,
                         history=[],
                         system=None,
-                        images=resolved_images,
+                        images=inference_images,
                         max_new_tokens=args.max_new_tokens,
                         temperature=args.temperature,
                         merging_type='mixture',
@@ -410,15 +432,15 @@ def main():
                 )
                 
                 template.model = model
-                
-                if resolved_images:
+
+                if inference_images:
                     response, _ = inference(
                         model,
                         template,
                         adjusted_query,
                         history=[],
                         system=None,
-                        images=resolved_images,
+                        images=inference_images,
                         max_new_tokens=args.max_new_tokens,
                         temperature=args.temperature
                     )
@@ -441,9 +463,13 @@ def main():
                 'selected_loras': selected_loras,
                 'weights': weights,
                 'num_images': len(resolved_images),
+                'num_images_used': len(inference_images),  # 实际用于推理的图片数
                 'merge_method': args.merge_method
             }
-            
+
+            # 更新进度条：显示完成状态
+            pbar.set_description(f"[{idx+1}/{len(test_data)}] ✓ Done")
+
             if args.debug:
                 logger.info(f"\nSample {idx}:")
                 logger.info(f"  Query: {query[:100]}...")
@@ -451,10 +477,14 @@ def main():
                 logger.info(f"  Response: {response[:200]}...")
                 
         except Exception as e:
+            # 更新进度条：显示错误状态
+            pbar.set_description(f"[{idx+1}/{len(test_data)}] ✗ Error")
+            pbar.set_postfix_str(f"Error: {str(e)[:50]}")
+
             logger.error(f"Error processing sample {idx}: {e}")
             import traceback
             traceback.print_exc()
-            
+
             result = {
                 'idx': idx,
                 'query': query,
@@ -468,16 +498,38 @@ def main():
         
         results.append(result)
         append_to_jsonl(output_path, result)
-    
+
+    # 关闭进度条
+    pbar.close()
+
     # Summary
     successful = sum(1 for r in results if not r['response'].startswith('ERROR'))
-    logger.info(f"\n{'='*60}")
-    logger.info(f"Inference complete!")
-    logger.info(f"  Total samples: {len(results)}")
-    logger.info(f"  Successful: {successful}")
-    logger.info(f"  Failed: {len(results) - successful}")
-    logger.info(f"  Results saved to: {output_path}")
-    logger.info(f"{'='*60}")
+
+    # 统计每个 LoRA 被选中的次数
+    from collections import Counter
+    lora_usage = Counter()
+    for r in results:
+        if 'selected_loras' in r and r['selected_loras']:
+            for lora_name in r['selected_loras']:
+                lora_usage[lora_name] += 1
+
+    logger.info(f"\n{'='*80}")
+    logger.info(f"推理完成！")
+    logger.info(f"{'='*80}")
+    logger.info(f"  总样本数:   {len(results)}")
+    logger.info(f"  成功:       {successful} ({successful*100/len(results):.1f}%)")
+    logger.info(f"  失败:       {len(results) - successful}")
+    logger.info(f"  合并方法:   {args.merge_method}")
+    logger.info(f"  Top-K:      {args.top_k}")
+    logger.info(f"  结果保存:   {output_path}")
+
+    if lora_usage:
+        logger.info(f"\nLoRA 使用统计 (Top 10):")
+        for lora_name, count in lora_usage.most_common(10):
+            short_name = lora_name.replace('app_lora_', '').replace('category_lora_', '')
+            logger.info(f"  {short_name:20s}: {count:3d} 次 ({count*100/len(results):.1f}%)")
+
+    logger.info(f"{'='*80}\n")
 
 
 if __name__ == '__main__':

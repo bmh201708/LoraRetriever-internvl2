@@ -11,9 +11,73 @@ import os
 import json
 import numpy as np
 import torch
+import inspect
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Union, Any
 from pathlib import Path
+
+
+def _call_with_supported_kwargs(fn, **kwargs):
+    """
+    智能过滤参数：只传递函数签名支持的参数
+    避免不同版本 jina-embeddings-v4 API 差异导致的错误
+    """
+    try:
+        sig = inspect.signature(fn)
+        allowed = set(sig.parameters.keys())
+    except Exception:
+        allowed = set(kwargs.keys())
+    passed = {k: v for k, v in kwargs.items() if (k in allowed and v is not None)}
+    return fn(**passed)
+
+
+def _to_numpy_embeddings(out: Any, debug: bool = False) -> np.ndarray:
+    """
+    稳健地将 jina-embeddings-v4 的返回值转为 numpy 数组
+    支持多种返回类型：Tensor, ndarray, list, dict 等
+    """
+    # 检查是否是函数（这不应该发生）
+    if callable(out) and not isinstance(out, (torch.Tensor, np.ndarray)):
+        raise TypeError(f"encode_* returned a callable object (type={type(out)}), expected embeddings. "
+                       f"This may indicate an API mismatch.")
+
+    if isinstance(out, torch.Tensor):
+        return out.detach().float().cpu().numpy().astype(np.float32, copy=False)
+    if isinstance(out, np.ndarray):
+        return out.astype(np.float32, copy=False)
+    if isinstance(out, dict):
+        # 尝试常见的 key
+        for k in ["embeddings", "embedding", "sentence_embedding", "sentence_embeddings", "vectors", "vector"]:
+            if k in out:
+                return _to_numpy_embeddings(out[k], debug=debug)
+        # 兜底：取第一个 value
+        if out:
+            return _to_numpy_embeddings(next(iter(out.values())), debug=debug)
+    if isinstance(out, (list, tuple)):
+        if len(out) == 0:
+            return np.zeros((0, 0), dtype=np.float32)
+        # list[Tensor] / list[np.ndarray]
+        if all(isinstance(x, torch.Tensor) for x in out):
+            t = torch.stack(list(out), dim=0)
+            return t.detach().float().cpu().numpy().astype(np.float32, copy=False)
+        if all(isinstance(x, np.ndarray) for x in out):
+            return np.stack(list(out), axis=0).astype(np.float32, copy=False)
+        # 混合类型：递归转
+        arrs = [_to_numpy_embeddings(x, debug=debug) for x in out]
+        return np.concatenate(arrs, axis=0) if (arrs and arrs[0].ndim == 2) else np.asarray(arrs, dtype=np.float32)
+
+    # 最后兜底
+    try:
+        return np.asarray(out, dtype=np.float32)
+    except TypeError:
+        if hasattr(out, "detach") and hasattr(out, "cpu"):
+            try:
+                t = out.detach().cpu()
+                if isinstance(t, torch.Tensor):
+                    return t.float().numpy().astype(np.float32, copy=False)
+            except Exception:
+                pass
+        raise TypeError(f"Cannot convert {type(out)} to numpy array")
 
 
 @dataclass
@@ -84,7 +148,37 @@ class LoraRetriever:
         """Lazy load the jina embedding model"""
         if self._model is None:
             from transformers import AutoModel
-            
+
+            # Monkey patch for PyTorch 2.5.1 + Triton 3.1.0 compatibility
+            # flash_attn 需要 wrap_triton 返回支持 [grid] 语法的对象
+            try:
+                if not hasattr(torch.library, 'wrap_triton'):
+                    import warnings
+                    warnings.filterwarnings('ignore', message='.*wrap_triton.*')
+
+                    class _TritonKernelWrapper:
+                        """包装 Triton kernel 以支持 kernel[grid](...) 语法"""
+                        def __init__(self, kernel):
+                            self.kernel = kernel
+
+                        def __getitem__(self, grid):
+                            """支持 kernel[grid] 语法，返回真正的 Triton launcher"""
+                            # 直接返回 Triton kernel 的 grid launcher
+                            # 这样 Triton 可以在正确的上下文中运行
+                            return self.kernel[grid]
+
+                        def __call__(self, *args, **kwargs):
+                            """支持直接调用"""
+                            return self.kernel(*args, **kwargs)
+
+                    def _dummy_wrap_triton(kernel):
+                        """返回支持索引的 wrapper"""
+                        return _TritonKernelWrapper(kernel)
+
+                    torch.library.wrap_triton = _dummy_wrap_triton
+            except Exception as e:
+                print(f"[DEBUG] Monkey patch warning (non-critical): {e}")
+
             print(f"[INFO] Loading jina-embeddings-v4 from {self.config.model_path}")
             
             dtype_map = {
@@ -137,26 +231,24 @@ class LoraRetriever:
         
         # Encode text
         if clean_text:
-            text_emb = model.encode_text(
-                [clean_text],
-                task='retrieval',
-                prompt_name='query'
-            )
-            # encode_text returns a list of embeddings
-            # Each element is a tensor on GPU
-            if isinstance(text_emb, list):
-                if len(text_emb) > 0:
-                    emb = text_emb[0]
-                    if hasattr(emb, 'cpu'):
-                        text_emb = emb.detach().cpu().float()
-                    else:
-                        text_emb = torch.tensor(emb).float()
-                else:
-                    raise ValueError("Empty embedding list returned")
-            elif hasattr(text_emb, 'cpu'):
-                text_emb = text_emb.detach().cpu().float().squeeze(0)
-            else:
-                text_emb = torch.tensor(text_emb).float().squeeze(0)
+            with torch.inference_mode():
+                # 直接调用，传递已知的参数
+                text_out = model.encode_text(
+                    [clean_text],
+                    task='retrieval',
+                    prompt_name='query'
+                )
+            # 稳健转换为 numpy
+            text_emb_np = _to_numpy_embeddings(text_out)
+            # 清理中间变量，释放显存
+            del text_out
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+            # 如果是二维的，取第一行
+            if text_emb_np.ndim == 2:
+                text_emb_np = text_emb_np[0]
+            text_emb = torch.from_numpy(text_emb_np).float()
             embeddings.append(text_emb)
 
         
@@ -165,19 +257,47 @@ class LoraRetriever:
             valid_images = [p for p in img_paths if os.path.exists(p)]
             if valid_images:
                 try:
-                    img_emb = model.encode_image(valid_images[:2])  # Limit to 2 images
-                    if isinstance(img_emb, torch.Tensor):
-                        img_emb = img_emb.detach().cpu()
-                    elif hasattr(img_emb, 'cpu'):
-                        img_emb = img_emb.detach().cpu()
-                    else:
-                        img_emb = torch.from_numpy(np.array(img_emb)).float()
-                    # Average image embeddings
-                    if img_emb.dim() > 1:
-                        img_emb = img_emb.mean(dim=0)
-                    embeddings.append(img_emb.float())
+                    # 限制最多2张图片，降低显存压力
+                    img_list = valid_images[:2]
+
+                    # 从环境变量读取配置，允许用户调整
+                    img_batch_size = int(os.environ.get('JINA_IMAGE_BATCH_SIZE', '1'))
+                    img_max_pixels = int(os.environ.get('JINA_MAX_PIXELS', '100000'))
+
+                    with torch.inference_mode():
+                        # 直接调用，传递已知的参数
+                        # 根据签名: (images, task=None, batch_size=8, return_multivector=False,
+                        #            return_numpy=False, truncate_dim=None, max_pixels=None)
+                        img_out = model.encode_image(
+                            images=img_list,
+                            task='retrieval',
+                            batch_size=img_batch_size,  # 一次处理1张图，避免 OOM
+                            max_pixels=img_max_pixels  # 降低分辨率（约 316x316），节省显存
+                        )
+
+                    # 稳健转换为 numpy
+                    img_emb_np = _to_numpy_embeddings(img_out, debug=False)
+                    # 清理中间变量，释放显存
+                    del img_out
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+
+                    # 如果有多张图，取平均
+                    if img_emb_np.ndim == 2 and img_emb_np.shape[0] > 1:
+                        img_emb_np = img_emb_np.mean(axis=0)
+                    elif img_emb_np.ndim == 2:
+                        img_emb_np = img_emb_np[0]
+                    img_emb = torch.from_numpy(img_emb_np).float()
+                    embeddings.append(img_emb)
                 except Exception as e:
+                    import traceback
                     print(f"[WARNING] Image encoding failed: {e}")
+                    print(f"[DEBUG] Full error:")
+                    traceback.print_exc()
+                finally:
+                    # 确保清理显存
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
 
         
         # Combine embeddings (weighted average)
