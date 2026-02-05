@@ -32,6 +32,19 @@ python tests/test_all_loras.py
 
 # Run E2E inference tests
 python tests/test_e2e_inference.py --num_samples 5
+
+# Evaluate inference results (step-level and episode-level accuracy)
+python evaluation/evaluate.py --data_path output/lora_retriever_results/xxx.jsonl --verbose
+
+# Run full evaluation pipeline (inference + evaluation)
+python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --top_k 3 --merge_method mixture
+
+# Run IID (in-distribution) or OOD (out-of-distribution) evaluation
+python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --eval_type iid
+python evaluation/run_evaluation.py --test_data data/Val_100.jsonl --eval_type ood
+
+# Quick evaluation using shell script
+./scripts/run_eval.sh --test_data data/Val_100.jsonl --top_k 3
 ```
 
 ## Architecture
