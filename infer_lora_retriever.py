@@ -433,14 +433,49 @@ def main():
                     )
             else:
                 # Fusion mode: merge parameters
+                import time as _time
+                print(f"\n[INFER DEBUG] Sample {idx}: 开始 fusion compose...")
+                _t_compose_start = _time.time()
                 merged_name = composer.compose(
                     model=model,
                     adapter_names=selected_loras,
                     weights=weights
                 )
-                
+                print(f"[INFER DEBUG] Sample {idx}: compose 完成，耗时 {_time.time() - _t_compose_start:.2f}s")
+
+                # === 诊断：检查 active adapters 和参数状态 ===
+                if hasattr(model, 'active_adapters'):
+                    print(f"[INFER DEBUG] SwiftModel.active_adapters: {model.active_adapters}")
+                from peft.tuners.lora import LoraLayer as _LoraLayer
+                for _name, _mod in model.named_modules():
+                    if isinstance(_mod, _LoraLayer):
+                        _peft_active = getattr(_mod, 'active_adapters', None)
+                        if _peft_active is None:
+                            _peft_active = getattr(_mod, 'active_adapter', None)
+                        print(f"[INFER DEBUG] 第一个LoRA层 ({_name}):")
+                        print(f"[INFER DEBUG]   PEFT active_adapters: {_peft_active}")
+                        print(f"[INFER DEBUG]   disable_adapters: {getattr(_mod, 'disable_adapters', 'N/A')}")
+                        print(f"[INFER DEBUG]   merged: {getattr(_mod, 'merged', 'N/A')}")
+                        # 检查 fused_lora 的参数状态
+                        if 'fused_lora' in _mod.lora_A:
+                            _fA = _mod.lora_A['fused_lora'].weight
+                            _fB = _mod.lora_B['fused_lora'].weight
+                            _fs = _mod.scaling.get('fused_lora', 'N/A')
+                            print(f"[INFER DEBUG]   fused_lora: scaling={_fs}, A_norm={_fA.norm():.4f}, B_norm={_fB.norm():.4f}, A_device={_fA.device}, A_dtype={_fA.dtype}")
+                        # 对比原始 adapter 的参数
+                        _first_orig = selected_loras[0] if selected_loras else None
+                        if _first_orig and _first_orig in _mod.lora_A:
+                            _oA = _mod.lora_A[_first_orig].weight
+                            _oB = _mod.lora_B[_first_orig].weight
+                            _os = _mod.scaling.get(_first_orig, 'N/A')
+                            print(f"[INFER DEBUG]   {_first_orig}: scaling={_os}, A_norm={_oA.norm():.4f}, B_norm={_oB.norm():.4f}, A_device={_oA.device}, A_dtype={_oA.dtype}")
+                        break
+                # === 诊断结束 ===
+
                 template.model = model
 
+                print(f"[INFER DEBUG] Sample {idx}: 开始 inference...")
+                _t_infer_start = _time.time()
                 if inference_images:
                     response, _ = inference(
                         model,
@@ -462,6 +497,11 @@ def main():
                         max_new_tokens=args.max_new_tokens,
                         temperature=args.temperature
                     )
+                _infer_time = _time.time() - _t_infer_start
+                _resp_len = len(response) if response else 0
+                _resp_tokens = _resp_len // 4  # 粗略估计 token 数
+                _tokens_per_sec = _resp_tokens / _infer_time if _infer_time > 0 else 0
+                print(f"[INFER DEBUG] Sample {idx}: inference 完成，耗时 {_infer_time:.2f}s, response长度={_resp_len}字符(~{_resp_tokens}tokens), ~{_tokens_per_sec:.1f}tokens/s")
             
             result = {
                 'idx': idx,

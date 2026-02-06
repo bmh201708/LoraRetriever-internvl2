@@ -212,6 +212,8 @@ class FusionComposer(BaseComposer):
         Returns:
             Name of the fused adapter
         """
+        import time
+
         if not adapter_names:
             raise ValueError("No adapters to merge")
 
@@ -224,20 +226,38 @@ class FusionComposer(BaseComposer):
 
         try:
             if not self._initialized:
-                # 第一次：使用 add_weighted_adapter 创建 fused adapter
+                # 第一次：使用 add_weighted_adapter 创建 fused adapter 的层结构
+                print(f"[FUSION DEBUG] 第一次调用，创建 fused adapter...")
+                print(f"[FUSION DEBUG] adapter_names: {adapter_names}")
+                print(f"[FUSION DEBUG] weights: {weights}")
+                t0 = time.time()
                 model.add_weighted_adapter(
                     adapters=adapter_names,
                     weights=weights,
                     adapter_name=merged_name,
                     combination_type=self.combination_type
                 )
+                print(f"[FUSION DEBUG] add_weighted_adapter 耗时: {time.time() - t0:.2f}s")
+                # add_weighted_adapter 使用 sqrt(w*scaling) 方式会引入大量交叉项噪声
+                # 用我们自己的简单加权平均覆盖参数，并修正 scaling
+                self._update_fused_params(model, adapter_names, weights, merged_name)
+                self._fix_fused_scaling(model, adapter_names, merged_name)
+                self._ensure_fused_active(model, merged_name)
                 self._initialized = True
                 self._model_ref = model
+                print(f"[FUSION DEBUG] 第一次调用完成，_initialized = True")
             else:
                 # 后续：直接更新 fused adapter 的参数
+                print(f"[FUSION DEBUG] 后续调用，直接更新参数...")
+                print(f"[FUSION DEBUG] adapter_names: {adapter_names}")
+                print(f"[FUSION DEBUG] weights: {weights}")
+                t0 = time.time()
                 self._update_fused_params(model, adapter_names, weights, merged_name)
-                # 确保 fused adapter 是激活状态（不需要停用其他adapter）
+                print(f"[FUSION DEBUG] _update_fused_params 耗时: {time.time() - t0:.2f}s")
+                t1 = time.time()
                 self._ensure_fused_active(model, merged_name)
+                print(f"[FUSION DEBUG] _ensure_fused_active 耗时: {time.time() - t1:.2f}s")
+                print(f"[FUSION DEBUG] 后续调用完成")
 
             return merged_name
 
@@ -271,12 +291,18 @@ class FusionComposer(BaseComposer):
         """
         from peft.tuners.lora import LoraLayer
 
+        updated_layers = 0
+        skipped_not_lora = 0
+        skipped_no_fused = 0
+
         for module in model.modules():
             if not isinstance(module, LoraLayer):
+                skipped_not_lora += 1
                 continue
 
             # 检查 fused adapter 是否存在于此层
             if not hasattr(module, 'lora_A') or fused_name not in module.lora_A:
+                skipped_no_fused += 1
                 continue
 
             # 检查所有源 adapter 是否存在于此层
@@ -312,20 +338,68 @@ class FusionComposer(BaseComposer):
             if fused_B is not None:
                 module.lora_B[fused_name].weight.data.copy_(fused_B)
 
-    def _ensure_fused_active(self, model: nn.Module, fused_name: str) -> None:
-        """
-        确保 fused adapter 处于激活状态，但不停用其他adapter
+            updated_layers += 1
 
-        Args:
-            model: Model
-            fused_name: Name of fused adapter
+        print(f"[FUSION DEBUG] _update_fused_params: 更新了 {updated_layers} 个LoRA层")
+
+    def _fix_fused_scaling(
+        self,
+        model: nn.Module,
+        adapter_names: List[str],
+        fused_name: str
+    ) -> None:
+        """
+        修正 fused adapter 的 scaling 值。
+
+        add_weighted_adapter 创建的 fused adapter 使用 lora_alpha=r，
+        所以 scaling=1.0。但论文的 fusion 公式要求使用原始 adapter 的 scaling。
+        Θ_fusion = (1/k) * Σ Θ_j，其中 forward 使用原始 scaling。
+
+        修正：将 fused_lora 的 scaling 设为原始 adapter 的 scaling 值。
         """
         from peft.tuners.lora import LoraLayer
 
+        fixed = False
         for module in model.modules():
-            if isinstance(module, LoraLayer) and hasattr(module, 'set_activation'):
+            if not isinstance(module, LoraLayer):
+                continue
+            if fused_name not in getattr(module, 'scaling', {}):
+                continue
+
+            # 获取原始 adapter 的 scaling（取第一个可用的）
+            original_scaling = None
+            for name in adapter_names:
+                if name in module.scaling:
+                    original_scaling = module.scaling[name]
+                    break
+
+            if original_scaling is not None and module.scaling[fused_name] != original_scaling:
+                module.scaling[fused_name] = original_scaling
+                if not fixed:
+                    print(f"[FUSION DEBUG] 修正 scaling: {1.0} -> {original_scaling}")
+                    fixed = True
+
+    def _ensure_fused_active(self, model: nn.Module, fused_name: str) -> None:
+        """
+        确保 fused adapter 在 PEFT 层面是 active adapter
+
+        关键：必须设置 PEFT LoraLayer 的 _active_adapter 属性，
+        否则标准 forward 会使用错误的 adapter。
+        active_adapter 是只读 property，需要通过 set_adapter() 或 _active_adapter 设置。
+        """
+        from peft.tuners.lora import LoraLayer
+
+        count = 0
+        for module in model.modules():
+            if isinstance(module, LoraLayer):
                 if fused_name in getattr(module, 'lora_A', {}):
-                    module.set_activation(fused_name, True)
+                    # 使用 set_adapter 方法（如果有），否则直接设置 _active_adapter
+                    if hasattr(module, 'set_adapter'):
+                        module.set_adapter([fused_name])
+                    else:
+                        module._active_adapter = [fused_name]
+                    count += 1
+        print(f"[FUSION DEBUG] _ensure_fused_active: 设置了 {count} 个LoRA层的 active_adapter = ['{fused_name}']")
 
     def cleanup(self, model: nn.Module) -> None:
         """
