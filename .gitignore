@@ -71,5 +71,6 @@ venv.bak/
 .DS_Store
 
 # Model outputs
-output/
+output/*
+!output/evaluation_results/
 *.log
