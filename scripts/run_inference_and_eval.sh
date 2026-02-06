@@ -54,6 +54,12 @@ GPU_ID=${GPU_ID:-}
 SKIP_INFERENCE=${SKIP_INFERENCE:-false}
 INFERENCE_RESULT=${INFERENCE_RESULT:-}
 
+# 批量评测参数
+BATCH_MODE=${BATCH_MODE:-false}
+APP_ONLY=${APP_ONLY:-false}
+CATEGORY_ONLY=${CATEGORY_ONLY:-false}
+DRY_RUN=${DRY_RUN:-false}
+
 # ==============================================================================
 # 参数解析
 # ==============================================================================
@@ -81,6 +87,12 @@ usage() {
     echo "  --skip_inference        跳过推理，直接评测"
     echo "  --inference_result PATH 指定推理结果文件（与 --skip_inference 配合使用）"
     echo ""
+    echo "批量评测参数:"
+    echo "  --batch                 批量评测模式（评测所有 app 和 category 数据集）"
+    echo "  --app_only              只评测 app 级别（与 --batch 配合使用）"
+    echo "  --category_only         只评测 category 级别（与 --batch 配合使用）"
+    echo "  --dry_run               只打印命令，不实际执行（与 --batch 配合使用）"
+    echo ""
     echo "环境变量 (可选):"
     echo "  MAX_NUM                 推理时最大图片数 (默认: 12，用于避免 OOM)"
     echo "  MAX_PIXELS              单张图片最大像素数 (默认: 100000)"
@@ -91,6 +103,13 @@ usage() {
     echo "  $0 --test_data data/Val_100.jsonl --top_k 3 --merge_method mixture"
     echo "  $0 --skip_inference --inference_result output/results.jsonl"
     echo "  MAX_NUM=8 $0 --test_data data/Val_100.jsonl --top_k 3  # 限制最多8张图"
+    echo ""
+    echo "  # 批量评测所有 app 和 category 数据集"
+    echo "  $0 --batch --gpu_id 5 --top_k 3 --merge_method mixture"
+    echo "  $0 --batch --app_only --gpu_id 5"
+    echo "  $0 --batch --category_only --gpu_id 5"
+    echo "  $0 --batch --dry_run"
+    echo "  $0 --batch --skip_inference --output_dir output/retriever_eval_xxx"
     exit 1
 }
 
@@ -152,6 +171,22 @@ while [[ $# -gt 0 ]]; do
             INFERENCE_RESULT="$2"
             shift 2
             ;;
+        --batch)
+            BATCH_MODE=true
+            shift
+            ;;
+        --app_only)
+            APP_ONLY=true
+            shift
+            ;;
+        --category_only)
+            CATEGORY_ONLY=true
+            shift
+            ;;
+        --dry_run)
+            DRY_RUN=true
+            shift
+            ;;
         -h|--help)
             usage
             ;;
@@ -173,7 +208,55 @@ elif [ -z "$CUDA_VISIBLE_DEVICES" ]; then
 fi
 
 # ==============================================================================
-# 打印配置信息
+# 批量评测模式 (--batch)
+# ==============================================================================
+
+if [ "$BATCH_MODE" = true ]; then
+    echo ""
+    echo "[批量评测模式] 调用 evaluation/evaluate_all.py ..."
+    echo "=============================================="
+
+    EVAL_CMD="python evaluation/evaluate_all.py \
+        --model_type $MODEL_TYPE \
+        --gpu_id ${GPU_ID:-$CUDA_VISIBLE_DEVICES} \
+        --top_k $TOP_K \
+        --merge_method $MERGE_METHOD \
+        --max_new_tokens $MAX_NEW_TOKENS \
+        --temperature $TEMPERATURE"
+
+    if [ -n "$OUTPUT_DIR" ] && [ "$OUTPUT_DIR" != "output/lora_retriever_results" ]; then
+        EVAL_CMD="$EVAL_CMD --output_dir $OUTPUT_DIR"
+    fi
+    if [ "$APP_ONLY" = true ]; then
+        EVAL_CMD="$EVAL_CMD --app_only"
+    fi
+    if [ "$CATEGORY_ONLY" = true ]; then
+        EVAL_CMD="$EVAL_CMD --category_only"
+    fi
+    if [ "$SKIP_INFERENCE" = true ]; then
+        EVAL_CMD="$EVAL_CMD --skip_inference"
+    fi
+    if [ "$DEBUG" = true ]; then
+        EVAL_CMD="$EVAL_CMD --debug"
+    fi
+    if [ -n "$NUM_SAMPLES" ]; then
+        EVAL_CMD="$EVAL_CMD --num_samples $NUM_SAMPLES"
+    fi
+    if [ "$SHOW_SIMILARITIES" = true ]; then
+        EVAL_CMD="$EVAL_CMD --show_similarities"
+    fi
+    if [ "$DRY_RUN" = true ]; then
+        EVAL_CMD="$EVAL_CMD --dry_run"
+    fi
+
+    echo "执行命令: $EVAL_CMD"
+    echo ""
+    eval $EVAL_CMD
+    exit $?
+fi
+
+# ==============================================================================
+# 打印配置信息 (单文件模式)
 # ==============================================================================
 
 echo "=============================================="
