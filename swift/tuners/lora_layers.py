@@ -107,7 +107,7 @@ class LoRAActivationMixin(ActivationMixin):
     def active_adapter(self) -> str:
         return self.get_activated_adapters()
 
-    def set_adapter(self, adapter_names, offload=None):
+    def set_adapter(self, adapter_names, offload=None, **kwargs):
         if isinstance(adapter_names, str):
             adapter_names = [adapter_names]
 
@@ -732,7 +732,7 @@ class LoraModel(_LoraModel):
             else:
                 raise NotImplementedError(f'Requested bias: {bias}, is not implemented.')
 
-    def inject_adapter(self, model: nn.Module, adapter_name: str):
+    def inject_adapter(self, model: nn.Module, adapter_name: str, **kwargs):
         r"""
         Override code:
         1. ModulesToSaveWrapper construction method: add module_key=key argument to offload to cpu
@@ -787,7 +787,12 @@ class LoraModel(_LoraModel):
                 _has_modules_to_save = True
                 continue
 
-            if not self._check_target_module_exists(peft_config, key):
+            # DEBUG PRINTS
+            should_inject = self._check_target_module_exists(peft_config, key)
+            if 'down_proj' in key and 'layers.0' in key:
+                 print(f"[DEBUG:swift-data1] Checking key: {key}, target_modules: {peft_config.target_modules}, result: {should_inject}")
+
+            if not should_inject:
                 continue
 
             self.targeted_module_names.append(key)

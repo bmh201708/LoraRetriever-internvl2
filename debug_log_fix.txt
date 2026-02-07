@@ -1,0 +1,180 @@
+mkdir -p failed for path /home/hmpiao/.config/matplotlib: [Errno 13] Permission denied: '/home/hmpiao/.config/matplotlib'
+Matplotlib created a temporary cache directory at /tmp/matplotlib-w6u8ufsb because there was an issue with the default path (/home/hmpiao/.config/matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+[INFO:swift] [LOGO] Patched PEFT Linear.forward for mixture mode support
+[INFO:swift] Successfully registered `/data1/hmpiao/jinyike/LoraRetriever-internvl2/swift/llm/data/dataset_info.json`
+[INFO:swift] No vLLM installed, if you are using vLLM, you will get `ImportError: cannot import name 'get_vllm_engine' from 'swift.llm'`
+[INFO:swift] No LMDeploy installed, if you are using LMDeploy, you will get `ImportError: cannot import name 'prepare_lmdeploy_engine_template' from 'swift.llm'`
+[INFO:swift] Global seed set to 42
+[INFO:swift] ============================================================
+[INFO:swift] LoraRetriever Inference
+[INFO:swift] ============================================================
+[INFO:swift] Model: qwen2-vl-7b-instruct
+[INFO:swift] Model Path: /home/hmpiao/hmpiao/Qwen2-VL-7B-Instruct
+[INFO:swift] Merge Method: mixture
+[INFO:swift] Top-K: 3
+[INFO:swift] Jina Model: /home/hmpiao/hmpiao/jina-embeddings-v4
+[INFO:swift] ============================================================
+[INFO:swift] Loading test data from: data/Val_100.jsonl
+[INFO:swift] Loaded 100 samples
+[INFO:swift] Debug mode: processing 2 samples
+[INFO:swift] Loaded 19 LoRA configs
+[INFO:swift] Initializing LoRA Retriever...
+[INFO:swift] Retriever loaded 19 LoRA embeddings
+[INFO:swift] Loading base model: qwen2-vl-7b-instruct
+[INFO:swift] Loading the model using model_dir: /home/hmpiao/hmpiao/Qwen2-VL-7B-Instruct
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+You have video processor config saved in `preprocessor.json` file which is deprecated. Video processor configs should be saved in their own `video_preprocessor.json` file. You can rename the file or load and save the processor back which renames it automatically. Loading from `preprocessor.json` will be removed in v5.0.
+[INFO:swift] model_kwargs: {'device_map': 'auto', 'low_cpu_mem_usage': True}
+[INFO] Loaded 19 LoRA embeddings
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:00<00:03,  1.01it/s]Loading checkpoint shards:  40%|████      | 2/5 [00:01<00:02,  1.07it/s]Loading checkpoint shards:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Loading checkpoint shards:  80%|████████  | 4/5 [00:03<00:00,  1.11it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:03<00:00,  1.28it/s]
+[INFO:swift] model.max_model_len: 32768
+[INFO:swift] Loading all LoRA adapters...
+[ERROR:swift] Failed to prepare config for app_lora_adidas_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_amazon_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_calendar_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_clock_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_decathlon_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_ebay_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_etsy_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_flipkart_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_gmail_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_google_drive_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_google_maps_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_kitchen_stories_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_reminder_qwen2vl: 
+[ERROR:swift] Failed to prepare config for app_lora_youtube_qwen2vl: 
+[ERROR:swift] Failed to prepare config for category_lora_entertainment_qwen2vl: 
+[ERROR:swift] Failed to prepare config for category_lora_lives_qwen2vl: 
+[ERROR:swift] Failed to prepare config for category_lora_office_qwen2vl: 
+[ERROR:swift] Failed to prepare config for category_lora_shopping_qwen2vl: 
+[ERROR:swift] Failed to prepare config for category_lora_traveling_qwen2vl: 
+[INFO:swift] Loaded 0 LoRA adapters
+[INFO:swift] ========================================
+[INFO:swift] [DEBUG] Inspecting model structure:
+[INFO:swift]   model.model found
+[INFO:swift]   Target base module type: <class 'transformers.models.qwen2_vl.modeling_qwen2_vl.Qwen2VLModel'>
+[INFO:swift]   Children: ['visual', 'language_model']
+[INFO:swift] ========================================
+[INFO:swift] Using mixture composition strategy
+[INFO:swift] Starting LoraRetriever inference...
+LoraRetriever Inference:   0%|                                                                    | 0/2 [00:00<?, ?it/s][1/2] Retrieving LoRAs:   0%|                                                                     | 0/2 [00:00<?, ?it/s]You are attempting to use Flash Attention 2.0 with a model not initialized on GPU. Make sure to move the model to GPU after initializing it on CPU with `model.to('cuda')`.
+[INFO] Loading jina-embeddings-v4 from /home/hmpiao/hmpiao/jina-embeddings-v4
+
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s][A
+Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  1.59it/s][A
+Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  2.30it/s][ALoading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  2.16it/s]
+
+Encoding texts...:   0%|          | 0/1 [00:00<?, ?it/s][AThe input hidden states seems to be silently casted in float32, this might be related to the fact you have upcasted embedding or layer norm layers in float32. We will cast back the input in torch.bfloat16.
+
+Encoding texts...: 100%|██████████| 1/1 [00:00<00:00,  5.28it/s][AEncoding texts...: 100%|██████████| 1/1 [00:00<00:00,  5.27it/s]
+
+Encoding images...:   0%|          | 0/2 [00:00<?, ?it/s][A
+Encoding images...:  50%|█████     | 1/2 [00:00<00:00,  1.89it/s][AEncoding images...: 100%|██████████| 2/2 [00:00<00:00,  3.30it/s]
+[1/2] Retrieving LoRAs:   0%|                                    | 0/2 [00:07<?, ?it/s, 8imgs | LoRAs: qwen2vl, qwen2vl]
+Encoding texts...:   0%|          | 0/1 [00:00<?, ?it/s][AEncoding texts...: 100%|██████████| 1/1 [00:00<00:00, 23.60it/s]
+
+Encoding images...:   0%|          | 0/2 [00:00<?, ?it/s][A
+Encoding images...:  50%|█████     | 1/2 [00:00<00:00,  9.08it/s][AEncoding images...: 100%|██████████| 2/2 [00:00<00:00, 10.68it/s]
+[INFO:swift] Sample 0 similarities:
+[INFO:swift]   category_lora_lives_qwen2vl: 0.7196
+[INFO:swift]   category_lora_entertainment_qwen2vl: 0.6547
+[INFO:swift]   category_lora_office_qwen2vl: 0.6493
+[INFO:swift]   app_lora_youtube_qwen2vl: 0.6456
+[INFO:swift]   app_lora_reminder_qwen2vl: 0.6356
+[INFO:swift]   category_lora_traveling_qwen2vl: 0.6260
+[INFO:swift]   app_lora_clock_qwen2vl: 0.6169
+[INFO:swift]   category_lora_shopping_qwen2vl: 0.6122
+[INFO:swift]   app_lora_google_maps_qwen2vl: 0.6120
+[INFO:swift]   app_lora_calendar_qwen2vl: 0.6116
+[INFO:swift]   app_lora_google_drive_qwen2vl: 0.6072
+[INFO:swift]   app_lora_kitchen_stories_qwen2vl: 0.6037
+[INFO:swift]   app_lora_decathlon_qwen2vl: 0.6032
+[INFO:swift]   app_lora_gmail_qwen2vl: 0.6005
+[INFO:swift]   app_lora_amazon_qwen2vl: 0.5934
+[INFO:swift]   app_lora_etsy_qwen2vl: 0.5908
+[INFO:swift]   app_lora_flipkart_qwen2vl: 0.5846
+[INFO:swift]   app_lora_adidas_qwen2vl: 0.5791
+[INFO:swift]   app_lora_ebay_qwen2vl: 0.5761
+[1/2] Inferencing:   0%|                                         | 0/2 [00:08<?, ?it/s, 8imgs | LoRAs: qwen2vl, qwen2vl][INFO:swift] Setting image_factor: 16. You can adjust this hyperparameter through the environment variable: `IMAGE_FACTOR`.
+[INFO:swift] Setting resized_height: None. You can adjust this hyperparameter through the environment variable: `RESIZED_HEIGHT`.
+[INFO:swift] Setting resized_width: None. You can adjust this hyperparameter through the environment variable: `RESIZED_WIDTH`.
+[INFO:swift] Setting min_pixels: 576. You can adjust this hyperparameter through the environment variable: `MIN_PIXELS`.
+[INFO:swift] Using environment variable `MAX_PIXELS`, Setting max_pixels: 100000.
+[INFO:swift] LOGO Mixture mode enabled: adapters=[], weights shape=torch.Size([1, 0])
+[1/2] ✓ Done:   0%|                                              | 0/2 [00:11<?, ?it/s, 8imgs | LoRAs: qwen2vl, qwen2vl][INFO:swift] 
+Sample 0:
+[INFO:swift]   Query: <image>
+<image>
+<image>
+<image>
+<image>
+<image>
+<image>
+<image>
+In the Balance app, I want to listen...
+[INFO:swift]   Selected: [('category_lora_lives_qwen2vl', '0.412'), ('category_lora_entertainment_qwen2vl', '0.298'), ('category_lora_office_qwen2vl', '0.290')]
+[INFO:swift]   Response: To listen to the "Along the River" meditation in the Balance app, follow these steps:
+
+1. Open the Balance app on your device.
+2. Tap on the "Today" tab at the bottom of the screen.
+3. Scroll down to ...
+[1/2] ✓ Done:  50%|███████████████████                   | 1/2 [00:11<00:11, 11.05s/it, 8imgs | LoRAs: qwen2vl, qwen2vl][2/2] Retrieving LoRAs:  50%|██████████████              | 1/2 [00:11<00:11, 11.05s/it, 8imgs | LoRAs: qwen2vl, qwen2vl]
+Encoding texts...:   0%|          | 0/1 [00:00<?, ?it/s][AEncoding texts...: 100%|██████████| 1/1 [00:00<00:00, 22.35it/s]
+
+Encoding images...:   0%|          | 0/2 [00:00<?, ?it/s][A
+Encoding images...: 100%|██████████| 2/2 [00:00<00:00, 12.20it/s][AEncoding images...: 100%|██████████| 2/2 [00:00<00:00, 12.18it/s]
+[2/2] Retrieving LoRAs:  50%|██████████████              | 1/2 [00:11<00:11, 11.05s/it, 2imgs | LoRAs: qwen2vl, qwen2vl]
+Encoding texts...:   0%|          | 0/1 [00:00<?, ?it/s][AEncoding texts...: 100%|██████████| 1/1 [00:00<00:00, 23.56it/s]
+
+Encoding images...:   0%|          | 0/2 [00:00<?, ?it/s][A
+Encoding images...: 100%|██████████| 2/2 [00:00<00:00, 12.47it/s][AEncoding images...: 100%|██████████| 2/2 [00:00<00:00, 12.45it/s]
+[INFO:swift] Sample 1 similarities:
+[INFO:swift]   app_lora_youtube_qwen2vl: 0.8212
+[INFO:swift]   category_lora_entertainment_qwen2vl: 0.7197
+[INFO:swift]   category_lora_lives_qwen2vl: 0.6737
+[INFO:swift]   app_lora_kitchen_stories_qwen2vl: 0.6584
+[INFO:swift]   category_lora_office_qwen2vl: 0.6531
+[INFO:swift]   category_lora_shopping_qwen2vl: 0.6495
+[INFO:swift]   app_lora_flipkart_qwen2vl: 0.6492
+[INFO:swift]   app_lora_ebay_qwen2vl: 0.6376
+[INFO:swift]   app_lora_gmail_qwen2vl: 0.6370
+[INFO:swift]   app_lora_etsy_qwen2vl: 0.6359
+[INFO:swift]   app_lora_amazon_qwen2vl: 0.6350
+[INFO:swift]   app_lora_google_drive_qwen2vl: 0.6337
+[INFO:swift]   app_lora_decathlon_qwen2vl: 0.6319
+[INFO:swift]   app_lora_adidas_qwen2vl: 0.6256
+[INFO:swift]   app_lora_google_maps_qwen2vl: 0.6169
+[INFO:swift]   app_lora_reminder_qwen2vl: 0.6148
+[INFO:swift]   category_lora_traveling_qwen2vl: 0.6146
+[INFO:swift]   app_lora_calendar_qwen2vl: 0.5942
+[INFO:swift]   app_lora_clock_qwen2vl: 0.5869
+[2/2] Inferencing:  50%|████████████████▌                | 1/2 [00:11<00:11, 11.05s/it, 2imgs | LoRAs: qwen2vl, qwen2vl][INFO:swift] LOGO Mixture mode enabled: adapters=[], weights shape=torch.Size([1, 0])
+[2/2] ✓ Done:  50%|███████████████████                   | 1/2 [00:15<00:11, 11.05s/it, 2imgs | LoRAs: qwen2vl, qwen2vl][INFO:swift] 
+Sample 1:
+[INFO:swift]   Query: <image>
+<image>
+Play a YouTube shorts video on the YouTube app....
+[INFO:swift]   Selected: [('app_lora_youtube_qwen2vl', '0.481'), ('category_lora_entertainment_qwen2vl', '0.289'), ('category_lora_lives_qwen2vl', '0.230')]
+[INFO:swift]   Response: To play a YouTube shorts video on the YouTube app, follow these steps:
+
+1. Open the YouTube app on your device.
+2. Tap on the "Shorts" icon located at the bottom of the screen. This is usually represe...
+[2/2] ✓ Done: 100%|██████████████████████████████████████| 2/2 [00:15<00:00,  6.93s/it, 2imgs | LoRAs: qwen2vl, qwen2vl][2/2] ✓ Done: 100%|██████████████████████████████████████| 2/2 [00:15<00:00,  7.55s/it, 2imgs | LoRAs: qwen2vl, qwen2vl]
+[INFO:swift] 
+================================================================================
+[INFO:swift] 推理完成！
+[INFO:swift] ================================================================================
+[INFO:swift]   总样本数:   2
+[INFO:swift]   成功:       2 (100.0%)
+[INFO:swift]   失败:       0
+[INFO:swift]   合并方法:   mixture
+[INFO:swift]   Top-K:      3
+[INFO:swift]   结果保存:   output/lora_retriever_results/retriever_results_qwen2vl_mixture_k3_20260208-000111.jsonl
+[INFO:swift] 
+LoRA 使用统计 (Top 10):
+[INFO:swift]   lives_qwen2vl       :   2 次 (100.0%)
+[INFO:swift]   entertainment_qwen2vl:   2 次 (100.0%)
+[INFO:swift]   office_qwen2vl      :   1 次 (50.0%)
+[INFO:swift]   youtube_qwen2vl     :   1 次 (50.0%)
+[INFO:swift] ================================================================================
+

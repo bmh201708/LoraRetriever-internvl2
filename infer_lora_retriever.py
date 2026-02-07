@@ -54,7 +54,7 @@ from swift.llm.utils import (
     get_template,
     inference
 )
-from swift.tuners import Swift
+from swift.tuners import Swift, SwiftConfig, SwiftModel, LoRAConfig
 
 from lora_retriever import (
     LoraRetriever,
@@ -294,27 +294,159 @@ def main():
     logger.info("Loading all LoRA adapters...")
     adapter_names = []
     
-    for cfg in lora_configs:
-        lora_name = cfg['lora_name']
-        lora_path = cfg['lora_path']
+    if args.model_type == 'qwen2-vl-7b-instruct':
+        # Custom loading for Qwen2-VL to fix target_modules regex issue
+        qwen_configs = {}
+        valid_adapters = []
         
-        if not os.path.exists(lora_path):
-            logger.warning(f"LoRA not found: {lora_path}, skipping...")
-            continue
-        
-        try:
-            model = Swift.from_pretrained(
-                model,
-                lora_path,
-                adapter_name=lora_name,
-                inference_mode=True
-            )
-            adapter_names.append(lora_name)
-            logger.info(f"  Loaded: {lora_name}")
-        except Exception as e:
-            logger.error(f"Failed to load {lora_name}: {e}")
+        for cfg in lora_configs:
+            lora_name = cfg['lora_name']
+            lora_path = cfg['lora_path']
+            
+            if not os.path.exists(lora_path):
+                logger.warning(f"LoRA not found: {lora_path}, skipping...")
+                continue
+                
+            try:
+                # 1. Load config manually to handle missing 'swift_type' in legacy/peft LoRAs
+                json_path = os.path.join(lora_path, 'adapter_config.json')
+                if not os.path.exists(json_path):
+                     logger.warning(f"Config not found: {json_path}")
+                     continue
+                     
+                with open(json_path, 'r') as f:
+                    config_dict = json.load(f)
+                
+                # Create default LoRAConfig and populate
+                swift_config = LoRAConfig()
+                for key, value in config_dict.items():
+                    if hasattr(swift_config, key):
+                        setattr(swift_config, key, value)
+                
+                # Ensure swift_type is set
+                swift_config.swift_type = 'LORA'
+                
+                # 2. Override target_modules with a REGEX to explicitly include all visual and LLM modules
+                # Using regex '.*(suffix1|suffix2)$' approach
+                target_suffixes = ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj', 'qkv', 'proj', 'fc1', 'fc2', r'merger\.mlp\.0', r'merger\.mlp\.2']
+                target_regex = r'.*(' + '|'.join(target_suffixes) + r')$'
+                swift_config.target_modules = target_regex
+                logger.info(f"Overridden target_modules for {lora_name} to regex: {target_regex}")
+                
+                qwen_configs[lora_name] = swift_config
+                valid_adapters.append((lora_name, lora_path))
+            except Exception as e:
+                 logger.error(f"Failed to prepare config for {lora_name}: {e}")
+
+        # 3. Initialize SwiftModel with all configs at once
+        if qwen_configs:
+            try:
+                model = SwiftModel(model, qwen_configs, inference_mode=True)
+                
+                # 4. Load weights for each adapter
+                from safetensors.torch import load_file as safe_load_file
+                for lora_name, lora_path in valid_adapters:
+                    try:
+                        # Manual loading with key remapping
+                        safe_path = os.path.join(lora_path, 'adapter_model.safetensors')
+                        if not os.path.exists(safe_path):
+                            logger.warning(f"  Safetensors not found at {safe_path}")
+                            continue
+                            
+                        state_dict = safe_load_file(safe_path)
+                        new_state_dict = {}
+                        for k, v in state_dict.items():
+                            # 1. Strip 'base_model.model.' prefix if present
+                            # Keys usually start with base_model.model.model... -> model...
+                            if k.startswith('base_model.model.'):
+                                k = k[len('base_model.model.'):]
+                            
+                            # 2. Fix mismatch: model.layers -> model.language_model.layers
+                            # Qwen2-VL specific fix because LoRA was trained without language_model prefix consistency
+                            if 'model.layers' in k:
+                                k = k.replace('model.layers', 'model.language_model.layers')
+                                
+                            # 3. Insert adapter name into LoRA keys
+                            # ...lora_A.weight -> ...lora_A.{adapter_name}.weight
+                            if 'lora_' in k and 'weight' in k:
+                                # Ensure we don't double replace if some weird naming exists
+                                if f".{lora_name}." not in k:
+                                    k = k.replace(".weight", f".{lora_name}.weight")
+                            
+                            new_state_dict[k] = v
+                        
+                        # Load into model
+                        keys_incompatible = model.load_state_dict(new_state_dict, strict=False)
+                        
+                        if keys_incompatible is None:
+                             logger.info(f"  Loaded (Custom Qwen): {lora_name} (No keys info returned)")
+                             adapter_names.append(lora_name)
+                             continue
+
+                        # Filter out expected missing keys (base model params)
+                        unexpected = [x for x in keys_incompatible.unexpected_keys if 'lora_' in x]
+                        if unexpected:
+                            logger.warning(f"  Loaded {lora_name} with unexpected keys: {unexpected[:5]}...")
+                        else:
+                            logger.info(f"  Loaded (Custom Qwen): {lora_name}")
+                            
+                        adapter_names.append(lora_name)
+
+                    except Exception as e:
+                         logger.error(f"Failed to load state dict for {lora_name}: {e}")
+            except Exception as e:
+                logger.error(f"Failed to initialize SwiftModel for Qwen2-VL: {e}")
+
+    else:
+        # Standard loading for InternVL2 (and others)
+        for cfg in lora_configs:
+            lora_name = cfg['lora_name']
+            lora_path = cfg['lora_path']
+            
+            if not os.path.exists(lora_path):
+                logger.warning(f"LoRA not found: {lora_path}, skipping...")
+                continue
+            
+            try:
+                model = Swift.from_pretrained(
+                    model,
+                    lora_path,
+                    adapter_name=lora_name,
+                    inference_mode=True
+                )
+                adapter_names.append(lora_name)
+                logger.info(f"  Loaded: {lora_name}")
+            except Exception as e:
+                logger.error(f"Failed to load {lora_name}: {e}")
     
     logger.info(f"Loaded {len(adapter_names)} LoRA adapters")
+
+    # [DEBUG] Inspect model layers
+    logger.info("=" * 40)
+    logger.info("[DEBUG] Inspecting model structure:")
+    
+    # Try to unwrap to see where visual is
+    try:
+        # model is SwiftModel (PeftModel)
+        # model.model is usually the modified base model or BaseTuner
+        # model.model.model is the transformers model?
+        
+        base = model
+        if hasattr(base, 'model'):
+            logger.info("  model.model found")
+            base = base.model
+        if hasattr(base, 'model'):
+            logger.info("  model.model.model found")
+            base = base.model
+            
+        logger.info(f"  Target base module type: {type(base)}")
+        logger.info(f"  Children: {list(base._modules.keys())}")
+        
+    except Exception as e:
+        logger.info(f"  Error inspecting structure: {e}")
+
+    logger.info("=" * 40)
+
     
     # =========================================================================
     # Initialize Composer
