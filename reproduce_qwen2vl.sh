@@ -14,6 +14,6 @@ python infer_lora_retriever.py \
     --top_k 3 \
     --merge_method mixture \
     --debug \
-    --num_samples 2 \
+    --num_samples 5 \
     --show_similarities
 
