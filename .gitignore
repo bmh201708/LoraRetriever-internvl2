@@ -73,4 +73,7 @@ venv.bak/
 # Model outputs
 output/*
 !output/evaluation_results/
+!output/individual_lora_eval/
+output/individual_lora_eval/*
+!output/individual_lora_eval/readme.md
 *.log
