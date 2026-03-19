@@ -510,18 +510,51 @@ class SwiftModel(nn.Module):
             key for key, value in self.model.named_modules() if isinstance(value, LoraLayer)
         ]
         lora_model.active_adapter = self.active_adapters
-        lora_model.add_weighted_adapter(
-            adapters=adapters,
-            weights=weights,
-            adapter_name=adapter_name,
-            combination_type=combination_type,
-            svd_rank=svd_rank,
-            svd_clamp=svd_clamp,
-            svd_full_matrices=svd_full_matrices,
-            svd_driver=svd_driver,
-            density=density,
-            majority_sign_method=majority_sign_method,
-        )
+        try:
+            lora_model.add_weighted_adapter(
+                adapters=adapters,
+                weights=weights,
+                adapter_name=adapter_name,
+                combination_type=combination_type,
+                svd_rank=svd_rank,
+                svd_clamp=svd_clamp,
+                svd_full_matrices=svd_full_matrices,
+                svd_driver=svd_driver,
+                density=density,
+                majority_sign_method=majority_sign_method,
+            )
+        except ValueError as e:
+            # PEFT linear/ties/dare_* requires same rank across adapters.
+            # Fallback to svd for mixed-rank adapters.
+            err = str(e)
+            linear_like = {'linear', 'ties', 'dare_ties', 'dare_linear'}
+            if ('same r value' in err) and (combination_type in linear_like):
+                fallback_rank = svd_rank
+                if fallback_rank is None:
+                    ranks = []
+                    for name in adapters:
+                        cfg = lora_model.peft_config.get(name)
+                        rank = int(getattr(cfg, 'r', 0) or 0) if cfg is not None else 0
+                        if rank > 0:
+                            ranks.append(rank)
+                    fallback_rank = max(ranks) if ranks else None
+                logger.warning(
+                    f'Mixed-rank adapters detected for combination_type={combination_type}, '
+                    f'fallback to svd (svd_rank={fallback_rank}).')
+                lora_model.add_weighted_adapter(
+                    adapters=adapters,
+                    weights=weights,
+                    adapter_name=adapter_name,
+                    combination_type='svd',
+                    svd_rank=fallback_rank,
+                    svd_clamp=svd_clamp,
+                    svd_full_matrices=svd_full_matrices,
+                    svd_driver=svd_driver,
+                    density=density,
+                    majority_sign_method=majority_sign_method,
+                )
+            else:
+                raise
 
         def state_dict_callback(state_dict, adapter_name, cfg):
             from swift.tuners.lora_layers import lora_state_dict

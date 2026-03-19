@@ -40,6 +40,7 @@ import datetime as dt
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 from tqdm import tqdm
+from collections import Counter
 
 import torch
 
@@ -70,6 +71,7 @@ logger = get_logger()
 # Default paths
 MODEL_PATHS = {
     'internvl2-2b': '/home/hmpiao/hmpiao/InternVL2-2B-ModelScope/OpenGVLab/InternVL2-2B',
+    'qwen2-vl-2b-instruct': '/data1/hmpiao/Qwen2-VL-2B-Instruct',
     'qwen2-vl-7b-instruct': '/home/hmpiao/hmpiao/Qwen2-VL-7B-Instruct',
 }
 
@@ -77,6 +79,11 @@ CONFIG_PATHS = {
     'internvl2-2b': {
         'app': 'config/app_loras_config_internvl2.json',
         'category': 'config/category_loras_config_internvl2.json',
+    },
+    'qwen2-vl-2b-instruct': {
+        'app': 'config/app_loras_config_qwen2vl.json',
+        # 当前仓库仅 app LoRA 已切到 2B；category 仍是 7B，默认禁用避免误加载
+        'category': '/dev/null',
     },
     'qwen2-vl-7b-instruct': {
         'app': 'config/app_loras_config_qwen2vl.json',
@@ -86,13 +93,27 @@ CONFIG_PATHS = {
 
 JINA_MODEL_PATH = '/home/hmpiao/hmpiao/jina-embeddings-v4'
 
+# Candidate app LoRA pool control (empty tuple means all app LoRAs from config).
+# Example:
+# APP = ('amazon', 'adidas', 'ebay')
+APP: Tuple[str, ...] = (
+    'amazon',
+    'clock',
+    'ebay',
+    'etsy',
+    'flipkart',
+    'google_drive',
+    'reminder',
+    'youtube',
+)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='LoraRetriever Inference for VLM')
     
     # Model settings
     parser.add_argument('--model_type', type=str, default='internvl2-2b',
-                       choices=['internvl2-2b', 'qwen2-vl-7b-instruct'])
+                       choices=['internvl2-2b', 'qwen2-vl-2b-instruct', 'qwen2-vl-7b-instruct'])
     parser.add_argument('--model_path', type=str, default=None)
     
     # Data paths
@@ -111,6 +132,9 @@ def parse_args():
     parser.add_argument('--merge_method', type=str, default='mixture',
                        choices=['mixture', 'fusion'],
                        help='mixture: output-level weighted sum (paper recommended), fusion: parameter-level averaging')
+    parser.add_argument('--composition_weight_mode', type=str, default='uniform',
+                       choices=['uniform', 'weighted'],
+                       help='uniform: 1/n (mixture) and 1/k (fusion); weighted: use retriever similarity weights')
     parser.add_argument('--combination_type', type=str, default='linear',
                        choices=['linear', 'svd', 'cat'],
                        help='For fusion mode: how to combine LoRA parameters')
@@ -125,6 +149,9 @@ def parse_args():
     parser.add_argument('--num_samples', type=int, default=None)
     parser.add_argument('--show_similarities', action='store_true',
                        help='Print similarity scores for all LoRAs')
+    parser.add_argument('--dialog_mode', type=str, default='step',
+                       choices=['step', 'episode'],
+                       help='For multi-turn messages format: step=teacher forcing history, episode=autoregressive history')
     
     parser.add_argument('--gpu_id', type=str, default='5', help='GPU ID to use (e.g., "0")')
 
@@ -154,6 +181,89 @@ def load_lora_configs(config_paths: List[str]) -> List[Dict]:
             data = json.load(f)
             configs.extend(data)
     return configs
+
+
+def _extract_app_from_lora_name(lora_name: str) -> Optional[str]:
+    """Extract app name from lora_name like 'app_lora_amazon_qwen2vl'."""
+    if not isinstance(lora_name, str):
+        return None
+    if not lora_name.startswith('app_lora_'):
+        return None
+    app_part = lora_name[len('app_lora_'):]
+    if '_' in app_part:
+        app_part = app_part.rsplit('_', 1)[0]
+    return app_part if app_part else None
+
+
+def filter_lora_configs_by_app_pool(
+    lora_configs: List[Dict[str, Any]],
+    app_pool: Any
+) -> List[Dict[str, Any]]:
+    """
+    Keep all non-app LoRAs; filter app LoRAs by APP tuple.
+    If APP is empty, keep all configs.
+    """
+    if not app_pool:
+        return lora_configs
+
+    if isinstance(app_pool, str):
+        # Guard against accidental tuple-without-commas:
+        # APP = ("adidas" "amazon") -> one long concatenated string.
+        if (',' not in app_pool) and (' ' not in app_pool):
+            raise ValueError(
+                f"APP format seems invalid: {app_pool!r}. "
+                "If you define multiple apps, use commas, e.g. "
+                "APP = ('adidas', 'amazon')."
+            )
+        app_pool = [x.strip() for x in app_pool.replace(',', ' ').split() if x.strip()]
+
+    allowed = {str(x).strip() for x in app_pool if str(x).strip()}
+    if not allowed:
+        return lora_configs
+
+    available_apps = {
+        app for app in (_extract_app_from_lora_name(cfg.get('lora_name', '')) for cfg in lora_configs)
+        if app is not None
+    }
+    matched_allowed = sorted([a for a in allowed if a in available_apps])
+    unmatched_allowed = sorted([a for a in allowed if a not in available_apps])
+    if unmatched_allowed:
+        logger.warning(f"APP pool contains unknown app names (ignored): {unmatched_allowed}")
+    if not matched_allowed and available_apps:
+        raise ValueError(
+            f"APP pool has no valid app in current configs. "
+            f"Given={sorted(allowed)}, available={sorted(available_apps)}"
+        )
+
+    filtered: List[Dict[str, Any]] = []
+    for cfg in lora_configs:
+        lora_name = cfg.get('lora_name', '')
+        app_name = _extract_app_from_lora_name(lora_name)
+        if app_name is None or app_name in matched_allowed:
+            filtered.append(cfg)
+    return filtered
+
+
+def build_lora_rank_map(lora_configs: List[Dict[str, Any]]) -> Dict[str, int]:
+    """Build LoRA rank map from adapter_config.json for mixed-rank diagnostics."""
+    rank_map: Dict[str, int] = {}
+    for cfg in lora_configs:
+        name = cfg.get('lora_name')
+        path = cfg.get('lora_path')
+        if not name or not path:
+            continue
+        cfg_path = os.path.join(path, 'adapter_config.json')
+        if not os.path.exists(cfg_path):
+            continue
+        try:
+            with open(cfg_path, 'r', encoding='utf-8') as f:
+                adapter_cfg = json.load(f)
+            rank_val = adapter_cfg.get('r')
+            if rank_val is not None:
+                rank_map[name] = int(rank_val)
+        except Exception:
+            continue
+    return rank_map
 
 
 def resolve_image_paths(images: List[str], project_root: str) -> List[str]:
@@ -188,6 +298,95 @@ def get_template_type(model_type: str) -> str:
         raise ValueError(f"Unknown model type: {model_type}")
 
 
+def strip_image_placeholders(text: str) -> str:
+    """Remove <image> placeholder lines for text-only history."""
+    lines = str(text).split('\n')
+    cleaned = [l for l in lines if l.strip() != '<image>']
+    return '\n'.join(cleaned).strip()
+
+
+def build_dialog_history(
+    turns: List[Dict[str, Any]],
+    up_to_turn_idx: int,
+    mode: str,
+    predictions: List[str]
+) -> List[List[str]]:
+    """
+    Build dialog history for the current turn (exclude current turn itself).
+
+    mode='step'    : use ground-truth assistant responses for history
+    mode='episode' : use model predictions for history
+    """
+    history: List[List[str]] = []
+    for k in range(up_to_turn_idx):
+        user_query = strip_image_placeholders(turns[k].get('query', ''))
+        if mode == 'episode':
+            assistant_reply = predictions[k] if k < len(predictions) else ''
+        else:
+            assistant_reply = turns[k].get('label', '')
+        history.append([user_query, assistant_reply])
+    return history
+
+
+def extract_dialog_turns(sample: Dict[str, Any]) -> Tuple[Optional[str], List[Dict[str, Any]]]:
+    """
+    Convert messages-format sample into dialog turns.
+    Expected input format:
+      {
+        "episode_id": "...",
+        "images": [...],
+        "messages": [{"role":"system|user|assistant","content":"..."}...]
+      }
+    Returns:
+      system_prompt, turns=[{"query":..., "images":[...], "label":...}, ...]
+    """
+    messages = sample.get('messages', [])
+    if not isinstance(messages, list) or len(messages) == 0:
+        return None, []
+
+    all_images = sample.get('images', []) or []
+    system_prompt = None
+    start_idx = 0
+
+    if str(messages[0].get('role', '')).lower().strip() == 'system':
+        system_prompt = str(messages[0].get('content', ''))
+        start_idx = 1
+
+    turns: List[Dict[str, Any]] = []
+    image_ptr = 0
+    i = start_idx
+
+    while i < len(messages):
+        role = str(messages[i].get('role', '')).lower().strip()
+        if role != 'user':
+            i += 1
+            continue
+
+        query = str(messages[i].get('content', ''))
+        num_images = query.count('<image>')
+        turn_images = all_images[image_ptr:image_ptr + num_images] if num_images > 0 else []
+        image_ptr += num_images
+
+        label = ''
+        if i + 1 < len(messages):
+            next_role = str(messages[i + 1].get('role', '')).lower().strip()
+            if next_role == 'assistant':
+                label = str(messages[i + 1].get('content', ''))
+                i += 2
+            else:
+                i += 1
+        else:
+            i += 1
+
+        turns.append({
+            'query': query,
+            'images': turn_images,
+            'label': label
+        })
+
+    return system_prompt, turns
+
+
 def main():
     args = parse_args()
     seed_everything(args.seed)
@@ -208,7 +407,7 @@ def main():
     model_suffix = 'qwen2vl' if 'qwen2' in args.model_type else 'internvl2'
     output_path = os.path.join(
         args.output_dir,
-        f'retriever_results_{model_suffix}_{args.merge_method}_k{args.top_k}_{time_str}.jsonl'
+        f'retriever_results_{model_suffix}_{args.merge_method}_{args.composition_weight_mode}_k{args.top_k}_{time_str}.jsonl'
     )
     
     logger.info("=" * 60)
@@ -217,6 +416,7 @@ def main():
     logger.info(f"Model: {args.model_type}")
     logger.info(f"Model Path: {args.model_path}")
     logger.info(f"Merge Method: {args.merge_method}")
+    logger.info(f"Composition Weight Mode: {args.composition_weight_mode}")
     logger.info(f"Top-K: {args.top_k}")
     logger.info(f"Jina Model: {args.jina_model}")
     logger.info("=" * 60)
@@ -239,7 +439,11 @@ def main():
         config_paths.append(args.category_config)
     
     lora_configs = load_lora_configs(config_paths)
+    lora_configs = filter_lora_configs_by_app_pool(lora_configs, APP)
+    lora_rank_map = build_lora_rank_map(lora_configs)
     logger.info(f"Loaded {len(lora_configs)} LoRA configs")
+    if APP:
+        logger.info(f"APP candidate pool enabled: {APP}")
     
     if not lora_configs:
         logger.error("No LoRA configs found!")
@@ -294,7 +498,7 @@ def main():
     logger.info("Loading all LoRA adapters...")
     adapter_names = []
     
-    if args.model_type == 'qwen2-vl-7b-instruct':
+    if 'qwen2-vl' in args.model_type:
         # Custom loading for Qwen2-VL to fix target_modules regex issue
         qwen_configs = {}
         valid_adapters = []
@@ -452,7 +656,7 @@ def main():
     # Initialize Composer
     # =========================================================================
     if args.merge_method == 'mixture':
-        composer = MixtureComposer(use_weighted_average=True)
+        composer = MixtureComposer(use_weighted_average=(args.composition_weight_mode == 'weighted'))
     else:
         composer = FusionComposer(combination_type=args.combination_type)
     
@@ -464,65 +668,80 @@ def main():
     logger.info("Starting LoraRetriever inference...")
     results = []
     project_root = str(PROJECT_ROOT)
+    lora_usage = Counter()
+    mixed_rank_logged = False
 
     # 创建进度条，显示详细信息
     pbar = tqdm(test_data, desc="LoraRetriever Inference", ncols=120)
 
     for idx, sample in enumerate(pbar):
+        # 兼容旧格式（query/response）和新格式（messages 多轮）
         query = sample.get('query', '')
         images = sample.get('images', [])
         label = sample.get('response', '')
+        episode_id = sample.get('episode_id', f'idx_{idx}')
+        turns = []
+        predictions = []
+        ground_truths = []
 
         try:
-            # 更新进度条：显示当前阶段
+            system_prompt, turns = extract_dialog_turns(sample)
+            is_multi_turn = len(turns) > 0
+            if not is_multi_turn:
+                turns = [{'query': query, 'images': images, 'label': label}]
+                system_prompt = None
+
+            # =========================================================================
+            # Step 1: Retrieve once per episode (fixed LoRA combo for all turns)
+            # =========================================================================
             pbar.set_description(f"[{idx+1}/{len(test_data)}] Retrieving LoRAs")
 
-            # Resolve image paths
-            resolved_images = resolve_image_paths(images, project_root)
+            first_turn = turns[0]
+            first_query = first_turn.get('query', '')
+            first_images = first_turn.get('images', [])
+            first_resolved_images = resolve_image_paths(first_images, project_root)
 
-            # =========================================================================
-            # Step 1: Retrieve Top-K LoRAs
-            # =========================================================================
             query_input = {
-                'text': query,
-                'images': resolved_images[:2]  # Use max 2 images for embedding
+                'text': first_query,
+                'images': first_resolved_images[:2]  # Use max 2 images for embedding retrieval
             }
 
             selected_loras, weights = retriever.retrieve_with_weights(
                 query_input,
                 top_k=args.top_k
             )
+            for lora_name in selected_loras:
+                lora_usage[lora_name] += 1
 
-            # 更新进度条：显示选中的 LoRAs 和图片信息
+            selected_ranks = [lora_rank_map.get(n) for n in selected_loras if lora_rank_map.get(n) is not None]
+            is_mixed_rank = len(set(selected_ranks)) > 1 if selected_ranks else False
+            if is_mixed_rank and not mixed_rank_logged:
+                if args.merge_method == 'mixture':
+                    logger.info(
+                        f"Detected mixed-rank LoRAs (r={selected_ranks}); "
+                        "mixture mode is output-level blending and supports mixed-rank natively.")
+                else:
+                    logger.info(
+                        f"Detected mixed-rank LoRAs (r={selected_ranks}); "
+                        "fusion mode will use mixed-rank compatible weighted-delta + SVD path.")
+                mixed_rank_logged = True
+
             lora_display = ', '.join([f"{name.split('_')[-1]}" for name in selected_loras[:2]])
-            img_info = f"{len(resolved_images)}imgs" if len(resolved_images) <= 10 else f"{len(resolved_images)}imgs(多!)"
+            img_info = f"{len(first_resolved_images)}imgs" if len(first_resolved_images) <= 10 else f"{len(first_resolved_images)}imgs(多!)"
             pbar.set_postfix_str(f"{img_info} | LoRAs: {lora_display}")
-            
+
             if args.show_similarities:
                 all_sims = retriever.get_all_similarities(query_input)
                 sorted_sims = sorted(all_sims.items(), key=lambda x: x[1], reverse=True)
-                logger.info(f"Sample {idx} similarities:")
+                logger.info(f"Sample {idx} similarities (episode-level retrieve):")
                 for name, sim in sorted_sims:
                     logger.info(f"  {name}: {sim:.4f}")
-            
+
             # =========================================================================
-            # Step 2: Compose LoRAs
+            # Step 2: Compose once per episode
             # =========================================================================
-            # 更新进度条：显示推理阶段
-            pbar.set_description(f"[{idx+1}/{len(test_data)}] Inferencing")
-
-            # 限制推理时的图片数量，避免 OOM
-            max_inference_images = int(os.environ.get('MAX_NUM', '12'))
-            if len(resolved_images) > max_inference_images:
-                logger.warning(f"Sample {idx}: {len(resolved_images)} 张图片超过限制，只使用前 {max_inference_images} 张")
-                inference_images = resolved_images[:max_inference_images]
-            else:
-                inference_images = resolved_images
-
-            adjusted_query = prepare_query(query, len(inference_images))
-
+            lora_mapping = None
             if args.merge_method == 'mixture':
-                # Create lora_mapping for mixture mode
                 lora_mapping = composer.compose(
                     model=model,
                     adapter_names=selected_loras,
@@ -531,133 +750,120 @@ def main():
                     batch_size=1,
                     device=next(model.parameters()).device
                 )
-                
-                # Update template model
-                template.model = model
-                
-                # Run inference with mixture mode
-                if inference_images:
-                    response, _ = inference(
-                        model,
-                        template,
-                        adjusted_query,
-                        history=[],
-                        system=None,
-                        images=inference_images,
-                        max_new_tokens=args.max_new_tokens,
-                        temperature=args.temperature,
-                        merging_type='mixture',
-                        lora_mapping=lora_mapping,
-                        mixture_adapter_names=adapter_names
-                    )
-                else:
-                    response, _ = inference(
-                        model,
-                        template,
-                        adjusted_query,
-                        history=[],
-                        system=None,
-                        max_new_tokens=args.max_new_tokens,
-                        temperature=args.temperature,
-                        merging_type='mixture',
-                        lora_mapping=lora_mapping,
-                        mixture_adapter_names=adapter_names
-                    )
             else:
-                # Fusion mode: merge parameters
-                import time as _time
-                print(f"\n[INFER DEBUG] Sample {idx}: 开始 fusion compose...")
-                _t_compose_start = _time.time()
-                merged_name = composer.compose(
+                # Fusion: merged adapter is reused for all turns in this episode
+                fusion_weights = weights
+                if args.composition_weight_mode == 'uniform' and selected_loras:
+                    fusion_weights = [1.0 / len(selected_loras)] * len(selected_loras)
+                composer.compose(
                     model=model,
                     adapter_names=selected_loras,
-                    weights=weights
+                    weights=fusion_weights
                 )
-                print(f"[INFER DEBUG] Sample {idx}: compose 完成，耗时 {_time.time() - _t_compose_start:.2f}s")
 
-                # === 诊断：检查 active adapters 和参数状态 ===
-                if hasattr(model, 'active_adapters'):
-                    print(f"[INFER DEBUG] SwiftModel.active_adapters: {model.active_adapters}")
-                from peft.tuners.lora import LoraLayer as _LoraLayer
-                for _name, _mod in model.named_modules():
-                    if isinstance(_mod, _LoraLayer):
-                        _peft_active = getattr(_mod, 'active_adapters', None)
-                        if _peft_active is None:
-                            _peft_active = getattr(_mod, 'active_adapter', None)
-                        print(f"[INFER DEBUG] 第一个LoRA层 ({_name}):")
-                        print(f"[INFER DEBUG]   PEFT active_adapters: {_peft_active}")
-                        print(f"[INFER DEBUG]   disable_adapters: {getattr(_mod, 'disable_adapters', 'N/A')}")
-                        print(f"[INFER DEBUG]   merged: {getattr(_mod, 'merged', 'N/A')}")
-                        # 检查 fused_lora 的参数状态
-                        if 'fused_lora' in _mod.lora_A:
-                            _fA = _mod.lora_A['fused_lora'].weight
-                            _fB = _mod.lora_B['fused_lora'].weight
-                            _fs = _mod.scaling.get('fused_lora', 'N/A')
-                            print(f"[INFER DEBUG]   fused_lora: scaling={_fs}, A_norm={_fA.norm():.4f}, B_norm={_fB.norm():.4f}, A_device={_fA.device}, A_dtype={_fA.dtype}")
-                        # 对比原始 adapter 的参数
-                        _first_orig = selected_loras[0] if selected_loras else None
-                        if _first_orig and _first_orig in _mod.lora_A:
-                            _oA = _mod.lora_A[_first_orig].weight
-                            _oB = _mod.lora_B[_first_orig].weight
-                            _os = _mod.scaling.get(_first_orig, 'N/A')
-                            print(f"[INFER DEBUG]   {_first_orig}: scaling={_os}, A_norm={_oA.norm():.4f}, B_norm={_oB.norm():.4f}, A_device={_oA.device}, A_dtype={_oA.dtype}")
-                        break
-                # === 诊断结束 ===
+            # =========================================================================
+            # Step 3: Multi-turn / single-turn inference
+            # =========================================================================
+            for turn_idx, turn in enumerate(turns):
+                pbar.set_description(f"[{idx+1}/{len(test_data)}][{turn_idx+1}/{len(turns)}] Inferencing")
+
+                turn_query = turn.get('query', '')
+                turn_images = turn.get('images', [])
+                turn_label = turn.get('label', '')
+
+                resolved_images = resolve_image_paths(turn_images, project_root)
+
+                # 限制推理时的图片数量，避免 OOM
+                max_inference_images = int(os.environ.get('MAX_NUM', '12'))
+                if len(resolved_images) > max_inference_images:
+                    logger.warning(
+                        f"Sample {idx} Turn {turn_idx}: {len(resolved_images)} 张图片超过限制，只使用前 {max_inference_images} 张")
+                    inference_images = resolved_images[:max_inference_images]
+                else:
+                    inference_images = resolved_images
+
+                adjusted_query = prepare_query(turn_query, len(inference_images))
+
+                # step: 历史用 GT；episode: 历史用模型之前输出
+                infer_history = build_dialog_history(
+                    turns=turns,
+                    up_to_turn_idx=turn_idx,
+                    mode=args.dialog_mode,
+                    predictions=predictions
+                )
 
                 template.model = model
-
-                print(f"[INFER DEBUG] Sample {idx}: 开始 inference...")
-                _t_infer_start = _time.time()
-                if inference_images:
-                    response, _ = inference(
-                        model,
-                        template,
-                        adjusted_query,
-                        history=[],
-                        system=None,
-                        images=inference_images,
-                        max_new_tokens=args.max_new_tokens,
-                        temperature=args.temperature
-                    )
+                if args.merge_method == 'mixture':
+                    if inference_images:
+                        response, _ = inference(
+                            model,
+                            template,
+                            adjusted_query,
+                            history=infer_history,
+                            system=system_prompt,
+                            images=inference_images,
+                            max_new_tokens=args.max_new_tokens,
+                            temperature=args.temperature,
+                            merging_type='mixture',
+                            lora_mapping=lora_mapping,
+                            mixture_adapter_names=adapter_names
+                        )
+                    else:
+                        response, _ = inference(
+                            model,
+                            template,
+                            adjusted_query,
+                            history=infer_history,
+                            system=system_prompt,
+                            max_new_tokens=args.max_new_tokens,
+                            temperature=args.temperature,
+                            merging_type='mixture',
+                            lora_mapping=lora_mapping,
+                            mixture_adapter_names=adapter_names
+                        )
                 else:
-                    response, _ = inference(
-                        model,
-                        template,
-                        adjusted_query,
-                        history=[],
-                        system=None,
-                        max_new_tokens=args.max_new_tokens,
-                        temperature=args.temperature
-                    )
-                _infer_time = _time.time() - _t_infer_start
-                _resp_len = len(response) if response else 0
-                _resp_tokens = _resp_len // 4  # 粗略估计 token 数
-                _tokens_per_sec = _resp_tokens / _infer_time if _infer_time > 0 else 0
-                print(f"[INFER DEBUG] Sample {idx}: inference 完成，耗时 {_infer_time:.2f}s, response长度={_resp_len}字符(~{_resp_tokens}tokens), ~{_tokens_per_sec:.1f}tokens/s")
-            
+                    if inference_images:
+                        response, _ = inference(
+                            model,
+                            template,
+                            adjusted_query,
+                            history=infer_history,
+                            system=system_prompt,
+                            images=inference_images,
+                            max_new_tokens=args.max_new_tokens,
+                            temperature=args.temperature
+                        )
+                    else:
+                        response, _ = inference(
+                            model,
+                            template,
+                            adjusted_query,
+                            history=infer_history,
+                            system=system_prompt,
+                            max_new_tokens=args.max_new_tokens,
+                            temperature=args.temperature
+                        )
+
+                predictions.append(response)
+                ground_truths.append(turn_label)
+
+                if args.debug:
+                    logger.info(
+                        f"Sample {idx} Turn {turn_idx} | Selected: {list(zip(selected_loras, [f'{w:.3f}' for w in weights]))}")
+                    logger.info(f"Sample {idx} Turn {turn_idx} | Response: {response[:200]}...")
+
+            # 输出格式与 FedMABench/inference/generate_inference.py 保持一致
             result = {
-                'idx': idx,
-                'query': query,
-                'response': response,
-                'label': label,
-                'selected_loras': selected_loras,
-                'weights': weights,
-                'num_images': len(resolved_images),
-                'num_images_used': len(inference_images),  # 实际用于推理的图片数
-                'merge_method': args.merge_method
+                'episode_id': episode_id,
+                'mode': args.dialog_mode,
+                'num_steps': len(turns),
+                'ground_truths': ground_truths,
+                'predictions': predictions
             }
 
-            # 更新进度条：显示完成状态
             pbar.set_description(f"[{idx+1}/{len(test_data)}] ✓ Done")
 
-            if args.debug:
-                logger.info(f"\nSample {idx}:")
-                logger.info(f"  Query: {query[:100]}...")
-                logger.info(f"  Selected: {list(zip(selected_loras, [f'{w:.3f}' for w in weights]))}")
-                logger.info(f"  Response: {response[:200]}...")
-                
         except Exception as e:
-            # 更新进度条：显示错误状态
             pbar.set_description(f"[{idx+1}/{len(test_data)}] ✗ Error")
             pbar.set_postfix_str(f"Error: {str(e)[:50]}")
 
@@ -666,16 +872,13 @@ def main():
             traceback.print_exc()
 
             result = {
-                'idx': idx,
-                'query': query,
-                'response': f"ERROR: {str(e)}",
-                'label': label,
-                'selected_loras': [],
-                'weights': [],
-                'num_images': len(images),
-                'merge_method': args.merge_method
+                'episode_id': episode_id,
+                'mode': args.dialog_mode,
+                'num_steps': len(turns) if turns else 1,
+                'ground_truths': ground_truths if ground_truths else ([label] if label else []),
+                'predictions': [f"ERROR: {str(e)}"]
             }
-        
+
         results.append(result)
         append_to_jsonl(output_path, result)
 
@@ -688,15 +891,14 @@ def main():
         composer.cleanup(model)
 
     # Summary
-    successful = sum(1 for r in results if not r['response'].startswith('ERROR'))
+    def _is_success(entry: Dict[str, Any]) -> bool:
+        preds = entry.get('predictions', [])
+        if isinstance(preds, list):
+            return not any(isinstance(x, str) and x.startswith('ERROR:') for x in preds)
+        resp = entry.get('response', '')
+        return not (isinstance(resp, str) and resp.startswith('ERROR:'))
 
-    # 统计每个 LoRA 被选中的次数
-    from collections import Counter
-    lora_usage = Counter()
-    for r in results:
-        if 'selected_loras' in r and r['selected_loras']:
-            for lora_name in r['selected_loras']:
-                lora_usage[lora_name] += 1
+    successful = sum(1 for r in results if _is_success(r))
 
     logger.info(f"\n{'='*80}")
     logger.info(f"推理完成！")

@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/decathlon_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/decathlon_train/20260319_195002/step_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260319-195006.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/decathlon_train/20260319_195002/episode_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260319-200350.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/decathlon_train/20260319_195002/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/decathlon_train/20260319_195002/eval_episode.log

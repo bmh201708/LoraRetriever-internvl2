@@ -231,17 +231,37 @@ class FusionComposer(BaseComposer):
                 print(f"[FUSION DEBUG] adapter_names: {adapter_names}")
                 print(f"[FUSION DEBUG] weights: {weights}")
                 t0 = time.time()
-                model.add_weighted_adapter(
-                    adapters=adapter_names,
-                    weights=weights,
-                    adapter_name=merged_name,
-                    combination_type=self.combination_type
-                )
+                try:
+                    model.add_weighted_adapter(
+                        adapters=adapter_names,
+                        weights=weights,
+                        adapter_name=merged_name,
+                        combination_type=self.combination_type
+                    )
+                except Exception as e:
+                    # linear/ties/dare_* 在 PEFT 中要求所有 adapter 的 rank 相同
+                    # 对 mixed-rank 场景自动回退到 svd 创建 fused 结构
+                    err = str(e)
+                    linear_like = {'linear', 'ties', 'dare_ties', 'dare_linear'}
+                    if ('same r value' in err) and (self.combination_type in linear_like):
+                        fallback_rank = self._infer_max_rank(model, adapter_names)
+                        print(
+                            f"[FUSION DEBUG] 检测到 mixed-rank，{self.combination_type} -> svd 回退, "
+                            f"svd_rank={fallback_rank}"
+                        )
+                        model.add_weighted_adapter(
+                            adapters=adapter_names,
+                            weights=weights,
+                            adapter_name=merged_name,
+                            combination_type='svd',
+                            svd_rank=fallback_rank
+                        )
+                    else:
+                        raise
                 print(f"[FUSION DEBUG] add_weighted_adapter 耗时: {time.time() - t0:.2f}s")
-                # add_weighted_adapter 使用 sqrt(w*scaling) 方式会引入大量交叉项噪声
-                # 用我们自己的简单加权平均覆盖参数，并修正 scaling
+                # 使用 weighted-delta + SVD 方式重算 fused 参数，兼容不同 rank
+                self._fix_fused_scaling(model, adapter_names, weights, merged_name)
                 self._update_fused_params(model, adapter_names, weights, merged_name)
-                self._fix_fused_scaling(model, adapter_names, merged_name)
                 self._ensure_fused_active(model, merged_name)
                 self._initialized = True
                 self._model_ref = model
@@ -252,6 +272,7 @@ class FusionComposer(BaseComposer):
                 print(f"[FUSION DEBUG] adapter_names: {adapter_names}")
                 print(f"[FUSION DEBUG] weights: {weights}")
                 t0 = time.time()
+                self._fix_fused_scaling(model, adapter_names, weights, merged_name)
                 self._update_fused_params(model, adapter_names, weights, merged_name)
                 print(f"[FUSION DEBUG] _update_fused_params 耗时: {time.time() - t0:.2f}s")
                 t1 = time.time()
@@ -272,6 +293,34 @@ class FusionComposer(BaseComposer):
                     model.set_active_adapters(top_adapter)
                 return top_adapter
             raise
+
+    def _infer_max_rank(self, model: nn.Module, adapter_names: List[str]) -> int:
+        """Infer max rank among selected adapters from loaded LoRA layers."""
+        from peft.tuners.lora import LoraLayer
+
+        max_rank = 0
+        for module in model.modules():
+            if not isinstance(module, LoraLayer):
+                continue
+            lora_A = getattr(module, 'lora_A', {})
+            for name in adapter_names:
+                if name in lora_A:
+                    rank = int(lora_A[name].weight.shape[0])
+                    if rank > max_rank:
+                        max_rank = rank
+
+        if max_rank > 0:
+            return max_rank
+
+        # Fallback by config if layer scan fails
+        peft_cfg = getattr(model, 'peft_config', None)
+        if isinstance(peft_cfg, dict):
+            for name in adapter_names:
+                cfg = peft_cfg.get(name)
+                rank = int(getattr(cfg, 'r', 0) or 0) if cfg is not None else 0
+                if rank > max_rank:
+                    max_rank = rank
+        return max_rank if max_rank > 0 else 8
 
     def _update_fused_params(
         self,
@@ -316,27 +365,43 @@ class FusionComposer(BaseComposer):
             if weight_sum > 0:
                 valid_weights = [w / weight_sum for w in valid_weights]
 
-            # 计算融合后的 lora_A 参数: Σ(w_i * A_i)
-            fused_A = None
-            for name, w in zip(valid_adapters, valid_weights):
-                if fused_A is None:
-                    fused_A = module.lora_A[name].weight.data.clone() * w
-                else:
-                    fused_A += module.lora_A[name].weight.data * w
+            # mixed-rank 兼容：先在 delta 空间加权，再用 SVD 回写到 fused rank
+            fused_A_weight = module.lora_A[fused_name].weight.data
+            fused_B_weight = module.lora_B[fused_name].weight.data
+            target_rank = int(fused_A_weight.shape[0])
+            target_scale = float(module.scaling.get(fused_name, 1.0))
+            if abs(target_scale) < 1e-8:
+                target_scale = 1.0
 
-            # 计算融合后的 lora_B 参数: Σ(w_i * B_i)
-            fused_B = None
+            merged_delta = None
             for name, w in zip(valid_adapters, valid_weights):
-                if fused_B is None:
-                    fused_B = module.lora_B[name].weight.data.clone() * w
+                src_A = module.lora_A[name].weight.data.to(dtype=torch.float32)
+                src_B = module.lora_B[name].weight.data.to(dtype=torch.float32)
+                src_scale = float(module.scaling.get(name, 1.0))
+                cur_delta = (src_B @ src_A) * (src_scale * float(w))
+                if merged_delta is None:
+                    merged_delta = cur_delta
                 else:
-                    fused_B += module.lora_B[name].weight.data * w
+                    merged_delta += cur_delta
 
-            # 更新 fused adapter 的参数
-            if fused_A is not None:
-                module.lora_A[fused_name].weight.data.copy_(fused_A)
-            if fused_B is not None:
-                module.lora_B[fused_name].weight.data.copy_(fused_B)
+            if merged_delta is None:
+                continue
+
+            normalized_delta = merged_delta / float(target_scale)
+            u, s, vh = torch.linalg.svd(normalized_delta, full_matrices=False)
+            r = min(target_rank, int(s.shape[0]))
+
+            s_sqrt = torch.sqrt(torch.clamp(s[:r], min=0))
+            new_b = u[:, :r] * s_sqrt.unsqueeze(0)      # [out, r]
+            new_a = s_sqrt.unsqueeze(1) * vh[:r, :]     # [r, in]
+
+            fused_A_weight.zero_()
+            fused_B_weight.zero_()
+
+            new_a = new_a.to(device=fused_A_weight.device, dtype=fused_A_weight.dtype)
+            new_b = new_b.to(device=fused_B_weight.device, dtype=fused_B_weight.dtype)
+            fused_A_weight[:r, :].copy_(new_a)
+            fused_B_weight[:, :r].copy_(new_b)
 
             updated_layers += 1
 
@@ -346,16 +411,11 @@ class FusionComposer(BaseComposer):
         self,
         model: nn.Module,
         adapter_names: List[str],
+        weights: List[float],
         fused_name: str
     ) -> None:
         """
-        修正 fused adapter 的 scaling 值。
-
-        add_weighted_adapter 创建的 fused adapter 使用 lora_alpha=r，
-        所以 scaling=1.0。但论文的 fusion 公式要求使用原始 adapter 的 scaling。
-        Θ_fusion = (1/k) * Σ Θ_j，其中 forward 使用原始 scaling。
-
-        修正：将 fused_lora 的 scaling 设为原始 adapter 的 scaling 值。
+        修正 fused adapter 的 scaling 值（按选中 adapter 的 scaling 加权平均）。
         """
         from peft.tuners.lora import LoraLayer
 
@@ -366,17 +426,22 @@ class FusionComposer(BaseComposer):
             if fused_name not in getattr(module, 'scaling', {}):
                 continue
 
-            # 获取原始 adapter 的 scaling（取第一个可用的）
-            original_scaling = None
-            for name in adapter_names:
-                if name in module.scaling:
-                    original_scaling = module.scaling[name]
-                    break
+            valid_pairs = [(n, w) for n, w in zip(adapter_names, weights) if n in module.scaling]
+            if not valid_pairs:
+                continue
+            w_sum = sum(w for _, w in valid_pairs)
+            if w_sum <= 0:
+                continue
+            normalized = [(n, w / w_sum) for n, w in valid_pairs]
+            target_scaling = sum(float(module.scaling[n]) * float(w) for n, w in normalized)
 
-            if original_scaling is not None and module.scaling[fused_name] != original_scaling:
-                module.scaling[fused_name] = original_scaling
+            if abs(target_scaling) < 1e-8:
+                target_scaling = 1.0
+
+            if module.scaling[fused_name] != target_scaling:
+                module.scaling[fused_name] = target_scaling
                 if not fixed:
-                    print(f"[FUSION DEBUG] 修正 scaling: {1.0} -> {original_scaling}")
+                    print(f"[FUSION DEBUG] 修正 scaling -> {target_scaling}")
                     fixed = True
 
     def _ensure_fused_active(self, model: nn.Module, fused_name: str) -> None:

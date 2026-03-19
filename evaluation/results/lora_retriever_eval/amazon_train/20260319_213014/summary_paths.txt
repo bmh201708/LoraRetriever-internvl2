@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/amazon_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/amazon_train/20260319_213014/step_outputs/retriever_results_qwen2vl_mixture_uniform_k3_20260319-213019.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/amazon_train/20260319_213014/episode_outputs/retriever_results_qwen2vl_mixture_uniform_k3_20260319-213201.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/amazon_train/20260319_213014/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/amazon_train/20260319_213014/eval_episode.log
