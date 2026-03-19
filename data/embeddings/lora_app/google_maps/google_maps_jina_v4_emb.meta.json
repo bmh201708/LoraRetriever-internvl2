@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/google_maps_train_first20.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_google_maps_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -39,9 +39,9 @@
     "004506"
   ],
   "texts_preview": [
-    "In the Google Maps app, find the \"Pete's Kitchen\" place for dinner.",
-    "Go to Google Maps and find directions to Jacob Riis Park  for this Saturday and save the address as Escape de ville",
-    "In the Google Maps app, I'd want to see the walking directions from my residence to Little Beet."
+    "Task: In the Google Maps app, find the \"Pete's Kitchen\" place for dinner.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Go to Google Maps and find directions to Jacob Riis Park  for this Saturday and save the address as Escape de ville\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: In the Google Maps app, I'd want to see the walking directions from my residence to Little Beet.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,

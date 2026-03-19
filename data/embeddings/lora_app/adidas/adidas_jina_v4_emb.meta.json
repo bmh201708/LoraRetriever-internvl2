@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/adidas_train_first20.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_adidas_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,16 +11,14 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
   "normalized": true,
   "episode_ids": [
     "000106",
-    "000137",
     "000186",
-    "000198",
     "000387",
     "000441",
     "000476",
@@ -28,7 +26,6 @@
     "000759",
     "000872",
     "000887",
-    "000976",
     "001011",
     "001387",
     "001440",
@@ -36,16 +33,19 @@
     "001555",
     "001640",
     "001859",
-    "001865"
+    "001865",
+    "001951",
+    "001976",
+    "002076"
   ],
   "texts_preview": [
-    "Shop for  RDY shoes in the Adidas app.",
-    "On the Shopclues app, add the adidas men's navy sports shoes to the wishlist.",
-    "Search for the dark blue yoga pants in the adidas app."
+    "Task: Shop for  RDY shoes in the Adidas app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Search for the dark blue yoga pants in the adidas app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: open the Adidas  app and Add NIZZA PLATFORMS SHOES  of size 10 to cart for mom to Adidas app\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 123,
+    "num_images_total": 125,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -58,7 +58,7 @@
     "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/adidas/adidas_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 123,
-    "total_images_existing_or_url": 123
+    "total_images_listed_in_jsonl": 125,
+    "total_images_existing_or_url": 125
   }
 }

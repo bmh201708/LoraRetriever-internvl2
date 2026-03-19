@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/calendar_train_first20.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_calendar_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -25,27 +25,27 @@
     "000555",
     "000614",
     "000697",
-    "000724",
     "000725",
     "000763",
     "000823",
     "000938",
     "001050",
     "001140",
-    "001164",
     "001426",
     "001475",
     "001482",
-    "001552"
+    "001552",
+    "001629",
+    "001684"
   ],
   "texts_preview": [
-    "There is some fixed setting in the calendar. I want to change my calendar setting.",
-    "I am not receiving notification from my Gmail calendar , Turn ON the Show event from Gmail setting .",
-    "Set 10 minutes before notification for the birthday event in gmail calendar"
+    "Task: There is some fixed setting in the calendar. I want to change my calendar setting.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: I am not receiving notification from my Gmail calendar , Turn ON the Show event from Gmail setting .\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Set 10 minutes before notification for the birthday event in gmail calendar\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 135,
+    "num_images_total": 134,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -58,7 +58,7 @@
     "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/calendar/calendar_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 135,
-    "total_images_existing_or_url": 135
+    "total_images_listed_in_jsonl": 134,
+    "total_images_existing_or_url": 134
   }
 }

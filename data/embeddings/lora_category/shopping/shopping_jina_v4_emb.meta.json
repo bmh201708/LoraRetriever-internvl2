@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/category/shopping_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/category_shopping_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,41 +11,41 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
   "normalized": true,
   "episode_ids": [
-    "000004",
-    "000005",
-    "000014",
-    "000019",
-    "000030",
-    "000048",
-    "000055",
-    "000059",
-    "000068",
-    "000072",
-    "000082",
-    "000084",
-    "000086",
-    "000106",
-    "000109",
-    "000114",
-    "000117",
-    "000121",
-    "000128",
-    "000137"
+    "017162",
+    "002815",
+    "000641",
+    "019955",
+    "007142",
+    "006357",
+    "005693",
+    "003574",
+    "019796",
+    "002541",
+    "018165",
+    "019934",
+    "014693",
+    "002171",
+    "015915",
+    "011255",
+    "000786",
+    "000753",
+    "002339",
+    "005518"
   ],
   "texts_preview": [
-    "Read Reviews from other shoppers to see what they think about Prince EXO3 Rebel Lite 98 Tennis Racquet in the Khelmart app.",
-    "In the Amazon app, look for a washing machine with LG in the brand filter.",
-    "Look for the tv wall mount with tv stands & mounts category on the eBay app before making a decision. I want to add specifications."
+    "Task: My older hair dryer is not in working condition and I am therefore in need of another one. Search for a hair dryer in the Amazon app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Add Mayze classic women's sneakers   to cart with shoe size 8 on  Puma app\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: In the Ikea app,search the furniture by sofas & Sofa-bed categories.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 137,
+    "num_images_total": 100,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_category/shopping/shopping_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_category/shopping/shopping_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_category/shopping/shopping_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_category/shopping/shopping_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 137,
-    "total_images_existing_or_url": 137
+    "total_images_listed_in_jsonl": 100,
+    "total_images_existing_or_url": 100
   }
 }

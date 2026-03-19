@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/category/traveling_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/category_traveling_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,23 +11,15 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
   "normalized": true,
   "episode_ids": [
-    "000013",
     "000023",
-    "000036",
-    "000064",
-    "000074",
     "000094",
-    "000105",
     "000115",
-    "000153",
-    "000165",
-    "000256",
     "000276",
     "000286",
     "000292",
@@ -36,16 +28,24 @@
     "000313",
     "000325",
     "000341",
-    "000349"
+    "000349",
+    "000353",
+    "000360",
+    "000362",
+    "000420",
+    "000442",
+    "000486",
+    "000527",
+    "000532"
   ],
   "texts_preview": [
-    "On cruisedeals, I would like to view the cruise schedules for a four-night trip from New York to Canada.",
-    "Get travel information for Air India 7544, operated by Ethiopian Air, from Sao Paulo-Guarulhos International Airport to Indira Gandhi International Airport in New Delhi by using the Kayak app.",
-    "My brother and I will be visiting Rio de Janeiro the following month. For two persons travelling to Rio de Janeiro from November 10 to November 15, I'll look for lodging on hotels.com."
+    "Task: Get travel information for Air India 7544, operated by Ethiopian Air, from Sao Paulo-Guarulhos International Airport to Indira Gandhi International Airport in New Delhi by using the Kayak app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: View the map-based directions from my location to the Cargo Express Terminal Gate using the Moovit app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: In the Google Maps app, find the \"Pete's Kitchen\" place for dinner.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 206,
+    "num_images_total": 154,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_category/traveling/traveling_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_category/traveling/traveling_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_category/traveling/traveling_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_category/traveling/traveling_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 206,
-    "total_images_existing_or_url": 206
+    "total_images_listed_in_jsonl": 154,
+    "total_images_existing_or_url": 154
   }
 }

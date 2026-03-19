@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/google_drive_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_google_drive_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,41 +11,41 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
   "normalized": true,
   "episode_ids": [
-    "000028",
-    "000029",
-    "000453",
-    "000717",
-    "001117",
-    "001151",
-    "001614",
-    "001793",
-    "001901",
-    "002455",
-    "002625",
-    "002731",
-    "002870",
-    "003093",
-    "003657",
-    "003999",
-    "004312",
-    "005090",
-    "006070",
-    "006860"
+    "000022",
+    "000050",
+    "000100",
+    "000300",
+    "000635",
+    "000803",
+    "000925",
+    "000926",
+    "001014",
+    "001137",
+    "001231",
+    "001511",
+    "001549",
+    "001604",
+    "001617",
+    "001628",
+    "001708",
+    "002830",
+    "002864",
+    "003204"
   ],
   "texts_preview": [
-    "In the Google Drive app, create a new folder called Dreams and Aspirations.",
-    "I want to go to Manage Google Drive storage in the Google Drive app so I can see how much storage is being utilised and when my storage will run out.",
-    "I want to restore the screenshot.txt file from the trash in the Google Drive app."
+    "Task: I want to download a photo from Google Drive.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: View the cycling data in the Google Drive app and examine the document for clarity when it needs to be updated.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: If I lose connection to the internet, I want to make the agents.txt file accessible offline in Google Drive so that I can readily access it.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 102,
+    "num_images_total": 114,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/google_drive/google_drive_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/google_drive/google_drive_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/google_drive/google_drive_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/google_drive/google_drive_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 102,
-    "total_images_existing_or_url": 102
+    "total_images_listed_in_jsonl": 114,
+    "total_images_existing_or_url": 114
   }
 }

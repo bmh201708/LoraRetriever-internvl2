@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/youtube_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_youtube_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,41 +11,41 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
   "normalized": true,
   "episode_ids": [
-    "000091",
     "000098",
     "000134",
     "000261",
     "000357",
     "000365",
     "000478",
-    "000519",
     "000700",
     "000832",
     "000951",
-    "000964",
     "001013",
     "001166",
     "001351",
     "001427",
     "001524",
     "002134",
-    "002283",
-    "002370"
+    "002370",
+    "002436",
+    "002767",
+    "002772",
+    "002866"
   ],
   "texts_preview": [
-    "I want the video quality to always be higher. shall I am playing video, I change the video quality preferences to higher picture quality in the settings of the YouTube app.",
-    "Play a short video of the cure named Friday I'm in Love by NextToAwesomeMusic3589 on the YouTube app.",
-    "Play a YouTube shorts video on the YouTube app."
+    "Task: Play a short video of the cure named Friday I'm in Love by NextToAwesomeMusic3589 on the YouTube app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Play a YouTube shorts video on the YouTube app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: The vegan Chickpea and vegetable casserole recipe was quite useful, and I want to subscribe to the Food Impromptu Channel to explore other recipes on the YouTube app.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 105,
+    "num_images_total": 102,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/youtube/youtube_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/youtube/youtube_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/youtube/youtube_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/youtube/youtube_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 105,
-    "total_images_existing_or_url": 105
+    "total_images_listed_in_jsonl": 102,
+    "total_images_existing_or_url": 102
   }
 }

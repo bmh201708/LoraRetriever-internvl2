@@ -11,8 +11,8 @@ set -e  # 遇到错误时退出
 # ==============================================================================
 
 # 激活 conda 环境
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate Lretriever
+source /home/hmpiao/miniconda3/etc/profile.d/conda.sh
+conda activate /data1/hmpiao/tmp/envs/Lretriever
 
 # 设置环境变量 (CUDA_VISIBLE_DEVICES 会在参数解析后设置)
 export MAX_PIXELS=${MAX_PIXELS:-100000}

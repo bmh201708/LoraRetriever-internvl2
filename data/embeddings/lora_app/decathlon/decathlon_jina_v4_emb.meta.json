@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/decathlon_train_first20.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_decathlon_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -22,10 +22,8 @@
     "000260",
     "000340",
     "000496",
-    "000684",
     "000840",
     "000952",
-    "001237",
     "002273",
     "002290",
     "002598",
@@ -36,16 +34,18 @@
     "003677",
     "003900",
     "004004",
-    "004109"
+    "004109",
+    "004188",
+    "004311"
   ],
   "texts_preview": [
-    "Open Decathlon AAP and search for Addidas sports shoes.",
-    "I'm going trekking with a friend next weekend and want to look for the best hiking shoes on the Decathlon app.",
-    "I want to add the Rockrider City Cycle Btwin My bike to my cart, so add this bicycle to my cart in the Decathlon app."
+    "Task: Open Decathlon AAP and search for Addidas sports shoes.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: I'm going trekking with a friend next weekend and want to look for the best hiking shoes on the Decathlon app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: I want to add the Rockrider City Cycle Btwin My bike to my cart, so add this bicycle to my cart in the Decathlon app.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 124,
+    "num_images_total": 126,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -58,7 +58,7 @@
     "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/decathlon/decathlon_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 124,
-    "total_images_existing_or_url": 124
+    "total_images_listed_in_jsonl": 126,
+    "total_images_existing_or_url": 126
   }
 }

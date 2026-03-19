@@ -4,8 +4,8 @@ export MAX_PIXELS=100000
 export MAX_NUM=12
 
 # Activate conda environment
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate Lretriever
+source /home/hmpiao/miniconda3/etc/profile.d/conda.sh
+conda activate /data1/hmpiao/tmp/envs/Lretriever
 
 # Run inference with Qwen2-VL on a small sample
 python infer_lora_retriever.py \
@@ -16,4 +16,3 @@ python infer_lora_retriever.py \
     --debug \
     --num_samples 5 \
     --show_similarities
-

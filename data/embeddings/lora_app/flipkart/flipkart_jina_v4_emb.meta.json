@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/flipkart_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_flipkart_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -19,7 +19,6 @@
   "episode_ids": [
     "000285",
     "000320",
-    "000427",
     "000534",
     "000603",
     "000639",
@@ -36,12 +35,13 @@
     "001571",
     "001616",
     "001641",
-    "001828"
+    "001828",
+    "001904"
   ],
   "texts_preview": [
-    "View the reviews of Campus Women's ANNIE walking shoes for me on the Flipkart app.",
-    "I am looking for shirts for my husband, so search for \"Raymond black shirts for men\" on the Flipkart app.",
-    "I am all set to get the casual shoes, but I may not get the shoes in the size that I fit. Look for casual shoes with a shoe size of 8 in the Flipkart app."
+    "Task: View the reviews of Campus Women's ANNIE walking shoes for me on the Flipkart app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: I am looking for shirts for my husband, so search for \"Raymond black shirts for men\" on the Flipkart app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: I am all done with the browsing , add Women’s shoes  to the wishlist in the Flipkart app\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
@@ -54,8 +54,8 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/flipkart/flipkart_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/flipkart/flipkart_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/flipkart/flipkart_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/flipkart/flipkart_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
     "total_images_listed_in_jsonl": 108,

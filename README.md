@@ -11,7 +11,8 @@ Implementation of LoraRetriever paper using InternVL2 as base model with Swift f
 ## Installation
 
 ```bash
-conda activate Lretriever
+source /home/hmpiao/miniconda3/etc/profile.d/conda.sh
+conda activate /data1/hmpiao/tmp/envs/Lretriever
 pip install -e .
 ```
 

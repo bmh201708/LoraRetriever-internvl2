@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/amazon_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_amazon_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -24,28 +24,28 @@
     "000337",
     "000423",
     "000540",
-    "000566",
     "000576",
     "000590",
     "000604",
     "000624",
-    "000633",
     "000681",
     "000708",
     "000786",
     "000821",
     "000843",
     "000897",
-    "000917"
+    "000917",
+    "000957",
+    "000980"
   ],
   "texts_preview": [
-    "In the Amazon app, look for a washing machine with LG in the brand filter.",
-    "I want to buy a pair of 42-size formal shoes, so search for 42-size formal shoes for me in the Amazon app.",
-    "My son told me to read the reviews of the product before purchasing it, so read the reviews of the Kawachi Fold Sown 3 Seater Wall Mounted Folding Breakfast Dining Table in the Amazon app."
+    "Task: In the Amazon app, look for a washing machine with LG in the brand filter.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: I want to buy a pair of 42-size formal shoes, so search for 42-size formal shoes for me in the Amazon app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: My son told me to read the reviews of the product before purchasing it, so read the reviews of the Kawachi Fold Sown 3 Seater Wall Mounted Folding Breakfast Dining Table in the Amazon app.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 108,
+    "num_images_total": 109,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/amazon/amazon_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/amazon/amazon_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/amazon/amazon_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/amazon/amazon_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 108,
-    "total_images_existing_or_url": 108
+    "total_images_listed_in_jsonl": 109,
+    "total_images_existing_or_url": 109
   }
 }

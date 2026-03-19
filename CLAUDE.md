@@ -12,7 +12,8 @@ LoraRetriever-InternVL2 implements the LoraRetriever paper for dynamic, input-aw
 
 ```bash
 # Install (uses Lretriever conda environment)
-conda activate Lretriever
+source /home/hmpiao/miniconda3/etc/profile.d/conda.sh
+conda activate /data1/hmpiao/tmp/envs/Lretriever
 pip install -e .
 
 # Run inference with LoRA retrieval (mixture mode)

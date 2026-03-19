@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/reminder_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_reminder_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,41 +11,41 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
   "normalized": true,
   "episode_ids": [
-    "000078",
-    "000156",
-    "000162",
     "000474",
     "000544",
     "000556",
     "000565",
     "000691",
     "000711",
-    "000871",
-    "000974",
     "000990",
     "001003",
-    "001010",
     "001369",
-    "001371",
-    "001491",
     "001534",
     "001843",
-    "001868"
+    "001868",
+    "001883",
+    "001950",
+    "002305",
+    "003248",
+    "003605",
+    "003673",
+    "003739",
+    "003768"
   ],
   "texts_preview": [
-    "I want to create a reminder to buy New balance hiking shoes on the To do reminder app",
-    "I want to edit the reminder to buy new Balance hiking shoes with a reminder date of December 21st on the To-Do reminder app.",
-    "In the reminders app, repeat Ashu´s birthday reminder every year."
+    "Task: I accidentally put the timing for a favorite drinks reminder at the wrong hour, thus I want to change it on the reminder app to 8 p.m.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Create a new reminder for date 20 june, time 1:00 pm with the title Station and add a note pick up in Reminder app\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: In the reminder app, edit the HR meeting timing from 11:30 AM to 11:00AM.\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 139,
+    "num_images_total": 167,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/reminder/reminder_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/reminder/reminder_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/reminder/reminder_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/reminder/reminder_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 139,
-    "total_images_existing_or_url": 139
+    "total_images_listed_in_jsonl": 167,
+    "total_images_existing_or_url": 167
   }
 }

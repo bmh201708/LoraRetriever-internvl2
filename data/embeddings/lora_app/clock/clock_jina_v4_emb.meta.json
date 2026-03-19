@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/clock_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_clock_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -19,14 +19,10 @@
   "episode_ids": [
     "000119",
     "000214",
-    "000488",
-    "000543",
-    "000583",
     "000608",
     "000698",
     "000719",
     "000768",
-    "000776",
     "001022",
     "001165",
     "001196",
@@ -36,16 +32,20 @@
     "001788",
     "001920",
     "001936",
-    "001988"
+    "001988",
+    "002124",
+    "002240",
+    "002263",
+    "002432"
   ],
   "texts_preview": [
-    "I am going to start cycling  and want to record the time for completing 1 Mile and do the improvement accordingly , Start the stopwatch in the clock app .",
-    "Set a timer for 30 minutes in the clock app",
-    "the timer, which was created by me I want to pause it."
+    "Task: I am going to start cycling  and want to record the time for completing 1 Mile and do the improvement accordingly , Start the stopwatch in the clock app .\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Set a timer for 30 minutes in the clock app\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: there is some changes with the flight timings till further updates , Pause the timer in the clock app\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 103,
+    "num_images_total": 94,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/clock/clock_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/clock/clock_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/clock/clock_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/clock/clock_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 103,
-    "total_images_existing_or_url": 103
+    "total_images_listed_in_jsonl": 94,
+    "total_images_existing_or_url": 94
   }
 }

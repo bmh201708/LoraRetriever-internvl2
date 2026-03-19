@@ -1,5 +1,5 @@
 {
-  "input_jsonl": "data/example/app/ebay_train_example.jsonl",
+  "input_jsonl": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/temp_jsonl/app_ebay_train_first20.jsonl",
   "model_path": "/home/hmpiao/hmpiao/jina-embeddings-v4",
   "device": "cuda",
   "dtype": "float16",
@@ -11,7 +11,7 @@
   "text_batch_size": 32,
   "image_batch_size": 1,
   "max_length": 512,
-  "max_pixels": 262144,
+  "max_pixels": 100000,
   "truncate_dim": null,
   "vector_type": null,
   "return_multivector": false,
@@ -21,7 +21,6 @@
     "000086",
     "000225",
     "000253",
-    "000267",
     "000384",
     "000388",
     "000484",
@@ -34,18 +33,19 @@
     "001119",
     "001174",
     "001270",
-    "001277",
     "001298",
-    "001299"
+    "001299",
+    "001390",
+    "001392"
   ],
   "texts_preview": [
-    "Look for the tv wall mount with tv stands & mounts category on the eBay app before making a decision. I want to add specifications.",
-    "Find the smart home speakers on the eBay app.",
-    "Open eBay app and search for Levis mens denim jeans"
+    "Task: Look for the tv wall mount with tv stands & mounts category on the eBay app before making a decision. I want to add specifications.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Find the smart home speakers on the eBay app.\nThe current screen is shown above. Please output ONLY ONE next action.",
+    "Task: Open eBay app and search for Levis mens denim jeans\nThe current screen is shown above. Please output ONLY ONE next action."
   ],
   "stats": {
     "num_examples": 20,
-    "num_images_total": 124,
+    "num_images_total": 130,
     "dim": 2048,
     "text_task": "retrieval",
     "text_prompt_name": "query",
@@ -54,11 +54,11 @@
     "return_multivector": false
   },
   "npy_paths": {
-    "embeddings": "data/embeddings/lora_app/ebay/ebay_jina_v4_emb.npy",
-    "mean": "data/embeddings/lora_app/ebay/ebay_jina_v4_emb.mean.npy"
+    "embeddings": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/ebay/ebay_jina_v4_emb.npy",
+    "mean": "/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/data/embeddings/lora_app/ebay/ebay_jina_v4_emb.mean.npy"
   },
   "dataset_stats": {
-    "total_images_listed_in_jsonl": 124,
-    "total_images_existing_or_url": 124
+    "total_images_listed_in_jsonl": 130,
+    "total_images_existing_or_url": 130
   }
 }

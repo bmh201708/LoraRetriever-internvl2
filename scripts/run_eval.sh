@@ -5,8 +5,8 @@
 #
 
 # Activate conda environment
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate Lretriever
+source /home/hmpiao/miniconda3/etc/profile.d/conda.sh
+conda activate /data1/hmpiao/tmp/envs/Lretriever
 
 # Set environment variables
 export MAX_PIXELS=150000
