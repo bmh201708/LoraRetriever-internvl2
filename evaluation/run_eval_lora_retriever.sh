@@ -25,7 +25,7 @@ MAX_NEW_TOKENS="512"
 TEMPERATURE="0.0"
 NUM_SAMPLES=""
 
-# example: bash evaluation/run_eval_lora_retriever.sh --test_input amazon --model qwen2b --merge_method mixture --gpu_id 2
+# example: bash evaluation/run_eval_lora_retriever.sh --test_input amazon --model qwen2b --merge_method mixture --gpu_id 6
 usage() {
   cat <<USAGE
 Usage:

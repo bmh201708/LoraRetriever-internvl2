@@ -309,17 +309,21 @@ def build_dialog_history(
     turns: List[Dict[str, Any]],
     up_to_turn_idx: int,
     mode: str,
-    predictions: List[str]
+    predictions: List[str],
+    image_counts: Optional[List[int]] = None
 ) -> List[List[str]]:
     """
     Build dialog history for the current turn (exclude current turn itself).
 
     mode='step'    : use ground-truth assistant responses for history
     mode='episode' : use model predictions for history
+    image_counts   : optional per-turn image count used to keep <image> placeholders aligned
     """
     history: List[List[str]] = []
     for k in range(up_to_turn_idx):
-        user_query = strip_image_placeholders(turns[k].get('query', ''))
+        user_query = turns[k].get('query', '')
+        if image_counts is not None and k < len(image_counts):
+            user_query = prepare_query(user_query, image_counts[k])
         if mode == 'episode':
             assistant_reply = predictions[k] if k < len(predictions) else ''
         else:
@@ -691,15 +695,25 @@ def main():
                 turns = [{'query': query, 'images': images, 'label': label}]
                 system_prompt = None
 
+            # 预先解析并限制每一轮图片（用于当前轮推理 + 历史图片回放）
+            max_images_per_turn = int(os.environ.get('MAX_NUM', '12'))
+            resolved_turn_images: List[List[str]] = []
+            for t_idx, t in enumerate(turns):
+                imgs = resolve_image_paths(t.get('images', []), project_root)
+                if len(imgs) > max_images_per_turn:
+                    logger.warning(
+                        f"Sample {idx} Turn {t_idx}: {len(imgs)} 张图片超过限制，只使用后 {max_images_per_turn} 张")
+                    # Keep newer images for this turn, drop older ones.
+                    imgs = imgs[-max_images_per_turn:]
+                resolved_turn_images.append(imgs)
+
             # =========================================================================
             # Step 1: Retrieve once per episode (fixed LoRA combo for all turns)
             # =========================================================================
             pbar.set_description(f"[{idx+1}/{len(test_data)}] Retrieving LoRAs")
 
-            first_turn = turns[0]
-            first_query = first_turn.get('query', '')
-            first_images = first_turn.get('images', [])
-            first_resolved_images = resolve_image_paths(first_images, project_root)
+            first_query = turns[0].get('query', '')
+            first_resolved_images = resolved_turn_images[0] if resolved_turn_images else []
 
             query_input = {
                 'text': first_query,
@@ -768,28 +782,21 @@ def main():
                 pbar.set_description(f"[{idx+1}/{len(test_data)}][{turn_idx+1}/{len(turns)}] Inferencing")
 
                 turn_query = turn.get('query', '')
-                turn_images = turn.get('images', [])
                 turn_label = turn.get('label', '')
 
-                resolved_images = resolve_image_paths(turn_images, project_root)
-
-                # 限制推理时的图片数量，避免 OOM
-                max_inference_images = int(os.environ.get('MAX_NUM', '12'))
-                if len(resolved_images) > max_inference_images:
-                    logger.warning(
-                        f"Sample {idx} Turn {turn_idx}: {len(resolved_images)} 张图片超过限制，只使用前 {max_inference_images} 张")
-                    inference_images = resolved_images[:max_inference_images]
-                else:
-                    inference_images = resolved_images
-
-                adjusted_query = prepare_query(turn_query, len(inference_images))
+                resolved_images = resolved_turn_images[turn_idx]
+                inference_images = [
+                    img for past_turn_images in resolved_turn_images[:turn_idx + 1] for img in past_turn_images
+                ]
+                adjusted_query = prepare_query(turn_query, len(resolved_images))
 
                 # step: 历史用 GT；episode: 历史用模型之前输出
                 infer_history = build_dialog_history(
                     turns=turns,
                     up_to_turn_idx=turn_idx,
                     mode=args.dialog_mode,
-                    predictions=predictions
+                    predictions=predictions,
+                    image_counts=[len(x) for x in resolved_turn_images]
                 )
 
                 template.model = model
