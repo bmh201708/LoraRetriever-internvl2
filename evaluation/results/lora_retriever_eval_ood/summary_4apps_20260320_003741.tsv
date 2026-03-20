@@ -1,0 +1,13 @@
+app	method	step_accuracy	episode_accuracy	run_dir
+adidas	fusion	36.30%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/adidas_train/20260320_003741
+adidas	mixture	36.30%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/adidas_train/20260320_010636
+calendar	fusion	49.40%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/calendar_train/20260320_011140
+calendar	mixture	49.40%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/calendar_train/20260320_014229
+decathlon	fusion	52.67%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/decathlon_train/20260320_014909
+decathlon	mixture	54.20%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/decathlon_train/20260320_021812
+gmail	fusion	48.12%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/gmail_train/20260320_022228
+gmail	mixture	46.62%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/gmail_train/20260320_025141
+google_maps	fusion	44.51%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/google_maps_train/20260320_025634
+google_maps	mixture	45.05%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/google_maps_train/20260320_032833
+kitchen_stories	fusion	52.63%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/kitchen_stories_train/20260320_033609
+kitchen_stories	mixture	52.63%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/kitchen_stories_train/20260320_040653

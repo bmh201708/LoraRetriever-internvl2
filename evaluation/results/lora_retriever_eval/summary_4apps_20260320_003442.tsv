@@ -1,0 +1,17 @@
+app	method	step_accuracy	episode_accuracy	run_dir
+amazon	fusion	58.82%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/amazon_train/20260320_003442
+amazon	mixture	58.82%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/amazon_train/20260320_010334
+clock	fusion	60.20%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/clock_train/20260320_010741
+clock	mixture	61.22%	15.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/clock_train/20260320_013708
+ebay	fusion	65.60%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/ebay_train/20260320_014033
+ebay	mixture	67.20%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/ebay_train/20260320_020913
+etsy	fusion	58.47%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/etsy_train/20260320_021314
+etsy	mixture	58.47%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/etsy_train/20260320_024136
+flipkart	fusion	58.82%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/flipkart_train/20260320_024522
+flipkart	mixture	61.76%	10.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/flipkart_train/20260320_031354
+google_drive	fusion	58.93%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/google_drive_train/20260320_031733
+google_drive	mixture	58.93%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/google_drive_train/20260320_034713
+reminder	fusion	49.09%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/reminder_train/20260320_035107
+reminder	mixture	49.70%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/reminder_train/20260320_042149
+youtube	fusion	61.32%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/youtube_train/20260320_042824
+youtube	mixture	62.26%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/mixture/youtube_train/20260320_045808

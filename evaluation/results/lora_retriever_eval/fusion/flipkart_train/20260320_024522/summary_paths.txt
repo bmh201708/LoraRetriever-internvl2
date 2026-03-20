@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/flipkart_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/flipkart_train/20260320_024522/step_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260320-024527.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/flipkart_train/20260320_024522/episode_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260320-025940.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/flipkart_train/20260320_024522/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/flipkart_train/20260320_024522/eval_episode.log

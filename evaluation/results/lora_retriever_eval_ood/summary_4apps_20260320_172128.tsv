@@ -1,0 +1,3 @@
+app	method	step_accuracy	episode_accuracy	run_dir
+adidas	fusion	27.41%	0.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/adidas_train/20260320_172128
+adidas	mixture	49.63%	5.00%	/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/adidas_train/20260320_182055

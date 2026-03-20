@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/reminder_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/reminder_train/20260320_035107/step_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260320-035112.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/reminder_train/20260320_035107/episode_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260320-040632.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/reminder_train/20260320_035107/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval/fusion/reminder_train/20260320_035107/eval_episode.log

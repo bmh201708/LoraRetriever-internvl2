@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/calendar_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/calendar_train/20260320_014229/step_outputs/retriever_results_qwen2vl_mixture_uniform_k3_20260320-014234.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/calendar_train/20260320_014229/episode_outputs/retriever_results_qwen2vl_mixture_uniform_k3_20260320-014552.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/calendar_train/20260320_014229/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/calendar_train/20260320_014229/eval_episode.log

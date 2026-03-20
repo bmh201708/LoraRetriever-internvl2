@@ -7,10 +7,12 @@ RESULTS_BASE="$SCRIPT_DIR/results/lora_retriever_eval"
 
 MODEL="qwen2b"
 GPU_ID="2"
-APPS=(amazon clock ebay esty flipkart google_drive reminder youtube)
+APPS=(amazon clock ebay etsy flipkart google_drive reminder youtube)
 METHODS=(fusion mixture)
+LORA_TYPE="app"
 
 # bash evaluation/run_eval_id.sh --model qwen2b --gpu_id 0
+# nohup bash evaluation/run_eval_id.sh --model qwen2b --lora_type app --gpu_id 6 > evaluation/run_eval_id.nohup.log 2>&1 &
 usage() {
   cat <<USAGE
 Usage:
@@ -20,6 +22,7 @@ Options:
   --model MODEL        qwen2b|qwen7b|intern2b (default: qwen2b)
   --gpu_id ID          GPU id (default: 0)
   --gou_id ID          Alias of --gpu_id
+  --lora_type TYPE     app|category|all (default: app)
   --apps "a b c d"     Space-separated app names
   --methods "m1 m2"    Space-separated merge methods (default: "fusion mixture")
                        allowed: fusion mixture
@@ -33,6 +36,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --model) MODEL="$2"; shift 2 ;;
     --gpu_id|--gou_id) GPU_ID="$2"; shift 2 ;;
+    --lora_type) LORA_TYPE="$2"; shift 2 ;;
     --apps)
       IFS=' ' read -r -a APPS <<< "$2"
       shift 2
@@ -46,10 +50,24 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+case "$LORA_TYPE" in
+  app|category|all) ;;
+  *)
+    echo "[ERROR] Unsupported --lora_type: $LORA_TYPE (allowed: app category all)"
+    exit 1
+    ;;
+esac
+
+if [[ "$LORA_TYPE" != "app" ]]; then
+  echo "[ERROR] run_eval_id.sh is app-only. Use --lora_type app. Got: $LORA_TYPE"
+  exit 1
+fi
+
 normalize_app() {
   local app="$1"
   case "$app" in
     remider) echo "reminder" ;;
+    esty) echo "etsy" ;;
     *) echo "$app" ;;
   esac
 }
@@ -90,6 +108,7 @@ printf "app\tmethod\tstep_accuracy\tepisode_accuracy\trun_dir\n" > "$SUMMARY_FIL
 echo "============================================================"
 echo "Batch eval starts"
 echo "model=$MODEL, gpu_id=$GPU_ID"
+echo "lora_type=$LORA_TYPE"
 echo "apps=${APPS[*]}"
 echo "methods=${METHODS[*]}"
 echo "============================================================"
@@ -108,6 +127,7 @@ for raw_app in "${APPS[@]}"; do
       --test_input "$app" \
       --model "$MODEL" \
       --gou_id "$GPU_ID" \
+      --lora_type "$LORA_TYPE" \
       --merge_method "$method" \
       --output_base "$method_output_base"
 

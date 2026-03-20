@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/adidas_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/adidas_train/20260320_003741/step_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260320-003745.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/adidas_train/20260320_003741/episode_outputs/retriever_results_qwen2vl_fusion_uniform_k3_20260320-005208.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/adidas_train/20260320_003741/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/fusion/adidas_train/20260320_003741/eval_episode.log

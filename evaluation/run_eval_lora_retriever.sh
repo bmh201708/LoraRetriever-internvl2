@@ -9,7 +9,10 @@ EVAL_SCRIPT="$SCRIPT_DIR/evaluate_inference.py"
 
 TEST_INPUT=""
 OUTPUT_BASE="$SCRIPT_DIR/results/lora_retriever_eval"
-DATA_ROOT="/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app"
+DATA_ROOT=""
+DATA_ROOT_SET="0"
+DEFAULT_APP_DATA_ROOT="/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app"
+DEFAULT_CATEGORY_DATA_ROOT="/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/category"
 
 MODEL_ALIAS="qwen2b"
 MODEL_TYPE=""
@@ -36,7 +39,7 @@ Required:
   --model MODEL                qwen2b | qwen7b | intern2b
 
 Optional:
-  --data_root DIR              Dataset root (default: /home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app)
+  --data_root DIR              Dataset root (default by --lora_type: app->.../app, category->.../category)
   --output_base DIR            Output base directory
   --model_path PATH            Override base model path
   --app_config PATH            Override app LoRA config
@@ -65,7 +68,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --test_input) TEST_INPUT="$2"; shift 2 ;;
     --model) MODEL_ALIAS="$2"; shift 2 ;;
-    --data_root) DATA_ROOT="$2"; shift 2 ;;
+    --data_root) DATA_ROOT="$2"; DATA_ROOT_SET="1"; shift 2 ;;
     --output_base) OUTPUT_BASE="$2"; shift 2 ;;
     --model_path) MODEL_PATH="$2"; shift 2 ;;
     --app_config) APP_CONFIG="$2"; shift 2 ;;
@@ -104,6 +107,53 @@ case "$MODEL_ALIAS" in
     ;;
 esac
 
+case "$LORA_TYPE" in
+  all|app|category) ;;
+  *)
+    echo "[ERROR] Unsupported --lora_type: $LORA_TYPE (expected: all|app|category)"
+    exit 1
+    ;;
+esac
+
+if [[ "$DATA_ROOT_SET" != "1" ]]; then
+  case "$LORA_TYPE" in
+    category) DATA_ROOT="$DEFAULT_CATEGORY_DATA_ROOT" ;;
+    *) DATA_ROOT="$DEFAULT_APP_DATA_ROOT" ;;
+  esac
+fi
+
+# Set default app config by model alias when user does not provide --app_config.
+if [[ -z "$APP_CONFIG" && "$LORA_TYPE" != "category" ]]; then
+  case "$MODEL_ALIAS" in
+    qwen2b)
+      APP_CONFIG="/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/config/app_loras_config_qwen2vl.json"
+      ;;
+    qwen7b)
+      APP_CONFIG="/data1/hmpiao/jinyike/LoraRetriever-internvl2/config/app_loras_config_qwen7b.json"
+      ;;
+  esac
+fi
+
+# Set default category config by model alias when user does not provide --category_config.
+if [[ -z "$CATEGORY_CONFIG" && "$LORA_TYPE" != "app" ]]; then
+  case "$MODEL_ALIAS" in
+    qwen2b|qwen7b)
+      CATEGORY_CONFIG="/data1/hmpiao/jinyike/LoraRetriever-internvl2/config/category_loras_config_qwen2vl.json"
+      ;;
+    intern2b)
+      CATEGORY_CONFIG="/data1/hmpiao/jinyike/LoraRetriever-internvl2/config/category_loras_config_internvl2.json"
+      ;;
+  esac
+fi
+
+# Hard gate configs by lora_type so wrong type cannot be mixed in.
+if [[ "$LORA_TYPE" == "app" ]]; then
+  CATEGORY_CONFIG="/dev/null"
+fi
+if [[ "$LORA_TYPE" == "category" ]]; then
+  APP_CONFIG="/dev/null"
+fi
+
 if [[ ! -f "$INFER_SCRIPT" ]]; then
   echo "[ERROR] infer script not found: $INFER_SCRIPT"
   exit 1
@@ -123,6 +173,42 @@ fi
 if [[ ! -f "$DATASET_PATH" ]]; then
   echo "[ERROR] dataset not found: $DATASET_PATH"
   exit 1
+fi
+
+# Strict dataset type checks.
+if [[ "$LORA_TYPE" == "app" ]]; then
+  if [[ "$DATASET_PATH" == *"/category/"* || "$DATA_ROOT" == *"/category"* ]]; then
+    echo "[ERROR] --lora_type app requires app test set, but got: $DATASET_PATH"
+    exit 1
+  fi
+  if [[ "$DATASET_PATH" != *"/app/"* ]]; then
+    echo "[ERROR] --lora_type app requires dataset path under .../app/, got: $DATASET_PATH"
+    exit 1
+  fi
+fi
+if [[ "$LORA_TYPE" == "category" ]]; then
+  if [[ "$DATASET_PATH" == *"/app/"* || "$DATA_ROOT" == *"/app"* ]]; then
+    echo "[ERROR] --lora_type category requires category test set, but got: $DATASET_PATH"
+    exit 1
+  fi
+  if [[ "$DATASET_PATH" != *"/category/"* ]]; then
+    echo "[ERROR] --lora_type category requires dataset path under .../category/, got: $DATASET_PATH"
+    exit 1
+  fi
+fi
+
+# Strict config existence checks for selected lora_type.
+if [[ "$LORA_TYPE" == "app" ]]; then
+  if [[ "$APP_CONFIG" == "/dev/null" || ! -f "$APP_CONFIG" ]]; then
+    echo "[ERROR] --lora_type app requires a valid app config, got: $APP_CONFIG"
+    exit 1
+  fi
+fi
+if [[ "$LORA_TYPE" == "category" ]]; then
+  if [[ "$CATEGORY_CONFIG" == "/dev/null" || ! -f "$CATEGORY_CONFIG" ]]; then
+    echo "[ERROR] --lora_type category requires a valid category config, got: $CATEGORY_CONFIG"
+    exit 1
+  fi
 fi
 
 mkdir -p "$OUTPUT_BASE"
@@ -176,6 +262,9 @@ run_one_dataset() {
   echo "Dataset    : $dataset_path"
   echo "Run Dir    : $run_dir"
   echo "Model      : $MODEL_ALIAS -> $MODEL_TYPE"
+  echo "LoRA Type  : $LORA_TYPE"
+  echo "App Config : ${APP_CONFIG:-<none>}"
+  echo "Cat Config : ${CATEGORY_CONFIG:-<none>}"
   echo "Merge      : $MERGE_METHOD"
   echo "WeightMode : $COMPOSITION_WEIGHT_MODE"
   echo "Top-K      : $TOP_K"

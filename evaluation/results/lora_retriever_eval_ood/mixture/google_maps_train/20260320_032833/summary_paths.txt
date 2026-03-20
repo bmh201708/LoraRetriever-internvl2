@@ -1,0 +1,5 @@
+DATASET=/home/hmpiao/hmpiao/jinyike/FedMABench/data_new_test/app/google_maps_train.jsonl
+STEP_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/google_maps_train/20260320_032833/step_outputs/retriever_results_qwen2vl_mixture_uniform_k3_20260320-032836.jsonl
+EPISODE_RESULT=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/google_maps_train/20260320_032833/episode_outputs/retriever_results_qwen2vl_mixture_uniform_k3_20260320-033219.jsonl
+STEP_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/google_maps_train/20260320_032833/eval_step.log
+EPISODE_EVAL_LOG=/home/hmpiao/hmpiao/jinyike/LoraRetriever-internvl2/evaluation/results/lora_retriever_eval_ood/mixture/google_maps_train/20260320_032833/eval_episode.log
